@@ -17,20 +17,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-Hans">
-<body className="bg-black text-white">
-  <HeroVideo />
-
-  <div className="relative z-10 flex min-h-screen flex-col">
-    <Header />
-
-    {/* 下面这个 main 继续用你的 max-w-6xl，不会影响视频 */}
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-      {children}
-    </main>
-
-    <Footer />
-  </div>
-</body>
+      <body className="bg-black overflow-x-hidden">
+        <HeroVideo />
+        <div className="relative z-10 flex min-h-screen flex-col">
+          <Header />
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+            {children}
+          </main>
+          <Footer />
+        </div>
+      </body>
     </html>
   );
 }
