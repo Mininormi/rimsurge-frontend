@@ -21,7 +21,7 @@ export default function RootLayout({
         <div className="flex min-h-screen flex-col">
           <Header />
           {/* 中间内容区域 */}
-          <main className="flex-1">
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
             {children}
           </main>
 
