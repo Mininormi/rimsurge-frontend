@@ -9,19 +9,10 @@ html,
 body {
   margin: 0;
   padding: 0;
-  height: 100%;
   overflow-x: hidden;
-  background: #000;   /* 看不见缝就算有也全是黑的 */
+  background: #000;
 }
 
-/* 让 iframe 以中心为锚点 */
-.hero-video-frame {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(6);
-  border: 0;
-}
 
 @theme inline {
   --color-background: var(--background);

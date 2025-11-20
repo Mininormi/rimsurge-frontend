@@ -1,23 +1,15 @@
 // components/HeroVideo.tsx
 export default function HeroVideo() {
   return (
-    <div
-      className="
-        fixed inset-0 
-        -z10
-        overflow-hidden
-        bg-black
-        pointer-events-none
-      "
-    >
-      <iframe
-        src="https://player.vimeo.com/video/1115222113?background=1&autoplay=1&muted=1&loop=1&dnt=1"
-        className="hero-video-frame"
-        allow="autoplay; fullscreen; picture-in-picture"
-        frameBorder="0"
+    <div className="absolute inset-x-0 top-0 h-[100vh] -z-10 overflow-hidden bg-black pointer-events-none">
+      <video
+        className="w-full h-full object-cover"
+        src="https://www.weds.co.jp/video/Kranze_leonis_jg_08_maverick_madpv.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
       />
-
-      {/* 黑色半透明遮罩，保证字可读 */}
       <div className="absolute inset-0 bg-black/40" />
     </div>
   );
