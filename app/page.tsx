@@ -1,5 +1,5 @@
 // app/page.tsx
-import HeroVideo from '@/components/HeroVideo'
+import HeroSection from '@/components/HeroSection'
 import BenefitsBar from '@/components/BenefitsBar'
 import NewArrivalsSplide from '@/components/NewArrivalsSplide'
 
@@ -7,42 +7,9 @@ export default function Home() {
   return (
     <>
       {/* 1. 背景视频 */}
-      <HeroVideo />
+      <HeroSection />
 
-      <main className="relative z-10 space-y-10 px-6 pt-16 pb-16 md:px-16 md:pt-24">
-        {/* 1. Hero 文案层：主 Slogan + 两个入口按钮 */}
-        <section
-          className="
-            flex min-h-[520px] items-center
-            text-white
-            md:min-h-[640px]
-          "
-        >
-          <div className="space-y-4 max-w-xl">
-            <h1 className="text-4xl font-extrabold md:text-5xl">Rimsurge · Wheels Only</h1>
-
-            <p className="text-lg text-slate-200">
-              改装轮毂 & OEM 原厂轮毂，专注加拿大市场的专业轮毂商店。
-            </p>
-
-            <div className="mt-4 flex gap-4">
-              <a
-                href="/aftermarket"
-                className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-slate-200"
-              >
-                改装轮毂
-              </a>
-
-              <a
-                href="/oem"
-                className="rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-white hover:border-white"
-              >
-                OEM 原厂轮毂
-              </a>
-            </div>
-          </div>
-        </section>
-
+      <main className="space-y-10 px-6 py-10 md:px-16">
         {/* 2. 卖点条 */}
         <BenefitsBar />
 
