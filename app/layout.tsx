@@ -1,7 +1,8 @@
 // app/layout.tsx
 import type { Metadata } from 'next'
 import './globals.css'
-import { Header } from '@/components/Header'
+
+import HeaderSwitcher from '@/components/HeaderSwitcher'
 import { Footer } from '@/components/Footer'
 
 export const metadata: Metadata = {
@@ -14,7 +15,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-Hans">
       <body className="relative bg-white overflow-x-hidden">
         <div className="relative z-10 flex min-h-screen flex-col">
-          <Header />
+          <HeaderSwitcher />
+          {/* 顶部留出 Header 高度，避免内容被盖住 */}
           <main className="flex-1 w-full">{children}</main>
           <Footer />
         </div>
