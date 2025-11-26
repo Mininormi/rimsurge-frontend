@@ -2,58 +2,26 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-type MegaItemId = 'by-vehicle' | 'aftermarket' | 'oem'
-
-const megaItems: {
-  id: MegaItemId
-  title: string
-  subtitle: string
-  highlightTitle: string
-  highlightDesc: string
-}[] = [
-  {
-    id: 'by-vehicle',
-    title: 'By Vehicle',
-    subtitle: 'Search wheels by exact fitment',
-    highlightTitle: 'By Vehicle Search',
-    highlightDesc:
-      'Enter your vehicle details and only see wheels that clear your brakes, hub and fenders. No more guessing offsets or test-fitting.',
-  },
-  {
-    id: 'aftermarket',
-    title: 'Aftermarket Wheels',
-    subtitle: 'Performance & aesthetic focused',
-    highlightTitle: 'Aftermarket Wheels',
-    highlightDesc:
-      'Lightweight forged and flow-formed wheels curated for street and track use, with proper fitment for Canadian roads.',
-  },
-  {
-    id: 'oem',
-    title: 'OEM Wheels',
-    subtitle: 'Original factory wheels',
-    highlightTitle: 'OEM Replacement',
-    highlightDesc:
-      'Factory-spec replacement wheels for lease returns, winter setups or fixing curb damage without upsetting your dealer.',
-  },
-]
+type MenuKey = 'vehicle' | 'aftermarket' | 'oem'
 
 export default function HeaderHome() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [pinned, setPinned] = useState(false) // 是否“锁定”展开
-  const [activeItemId, setActiveItemId] = useState<MegaItemId>('by-vehicle')
+  const [pinned, setPinned] = useState(false) // 是否锁定展开
+  const [activeItem, setActiveItem] = useState<MenuKey>('vehicle')
 
   const dropdownRef = useRef<HTMLDivElement | null>(null)
   const closeTimeoutRef = useRef<number | null>(null)
 
-  // 滚动：控制透明 / 白底
+  // 监听滚动：决定 header 是透明还是白底
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)
     }
 
+    handleScroll()
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -65,7 +33,7 @@ export default function HeaderHome() {
     }
   }
 
-  // 点击外部：关闭并取消锁定
+  // 点击外部：关闭 + 取消锁定
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!dropdownRef.current) return
@@ -89,55 +57,85 @@ export default function HeaderHome() {
   }, [menuOpen, pinned])
 
   const textColor = scrolled ? 'text-slate-900' : 'text-white'
-  const buttonBase = 'rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-300'
-  const buttonColor = scrolled ? 'bg-slate-900 text-white' : 'bg-white/90 text-slate-900'
+
+  const buttonBase =
+    'rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-300 flex items-center gap-2'
+  const buttonColor = scrolled ? 'bg-slate-900 text-white' : 'bg-white/92 text-slate-900'
+
+  // 方案 A：下拉主题跟随 header
+  const dropdownTheme = scrolled
+    ? // 白底状态：浅色卡片
+      'bg-white/98 text-slate-900 border-slate-200 shadow-[0_18px_45px_rgba(15,23,42,0.16)]'
+    : // 透明状态：深色玻璃
+      'bg-[rgba(8,18,35,0.78)] text-slate-50 border-white/10 backdrop-blur-2xl shadow-[0_26px_70px_rgba(15,23,42,0.85)]'
+
+  const dropdownMutedText = scrolled ? 'text-slate-500' : 'text-slate-300'
+  const dropdownActiveBg = scrolled ? 'bg-slate-100/80' : 'bg-slate-800/80'
+  const dropdownInactiveBg = scrolled ? 'hover:bg-slate-100/80' : 'hover:bg-slate-800/60'
 
   // 点击按钮：锁定 / 取消锁定
   const handleToggleClick = () => {
     if (pinned) {
-      // 已锁定 → 关闭并解锁
       setPinned(false)
       setMenuOpen(false)
     } else {
-      // 未锁定 → 打开并锁定
       setPinned(true)
       setMenuOpen(true)
     }
   }
 
-  // 悬停进入：如果没锁定，就临时打开，并取消任何关闭定时器
+  // 悬停进入按钮或 mega-menu：临时打开
   const handleMouseEnter = () => {
     clearCloseTimeout()
     if (!pinned) setMenuOpen(true)
   }
 
-  // 悬停离开：如果没锁定，不是立刻关，而是延迟 200ms 关
+  // 悬停离开：如果没锁定则延迟关闭，避免“刚要点就消失”
   const handleMouseLeave = () => {
     if (pinned) return
     clearCloseTimeout()
     closeTimeoutRef.current = window.setTimeout(() => {
       setMenuOpen(false)
       closeTimeoutRef.current = null
-    }, 200)
+    }, 220)
   }
 
-  const activeItem = megaItems.find((item) => item.id === activeItemId) ?? megaItems[0]
+  // 右侧内容文案
+  const detail = {
+    vehicle: {
+      title: 'By Vehicle Search',
+      body: [
+        'Enter your vehicle details and only see wheels that clear your brakes, hub and fenders.',
+        'No more guessing offsets or test-fitting.',
+      ],
+    },
+    aftermarket: {
+      title: 'Aftermarket Performance',
+      body: [
+        'Street, track and stance focused wheels with proper load ratings for Canadian roads.',
+        'Curated JDM & Euro-style fitments.',
+      ],
+    },
+    oem: {
+      title: 'OEM Replacement',
+      body: [
+        'Factory-spec replacement wheels for lease returns, winter setups or curb damage.',
+        'Match OEM look without visiting the dealer.',
+      ],
+    },
+  } as const
 
   return (
     <header
-      className={`
-        fixed top-0 left-0 w-full z-50
-        transition-colors duration-150
-        ${
-          scrolled
-            ? 'bg-white/95 backdrop-blur border-b border-gray-200 shadow-md'
-            : 'bg-transparent border-b border-transparent shadow-none'
-        }
-      `}
+      className={`fixed top-0 left-0 w-full z-50 transition-colors duration-150 ${
+        scrolled
+          ? 'bg-white/95 backdrop-blur border-b border-gray-200 shadow-md'
+          : 'bg-transparent border-b border-transparent'
+      }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 transition-all duration-300">
-        {/* 左侧：Logo + SHOP WHEELS mega menu */}
-        <div className="flex items-center gap-18">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 transition-all duration-300">
+        {/* 左侧：Logo + SHOP WHEELS */}
+        <div className="flex items-center gap-5">
           <Link href="/" className="flex items-baseline gap-2">
             <span
               className={`text-xl font-black tracking-tight ${
@@ -148,6 +146,7 @@ export default function HeaderHome() {
             </span>
           </Link>
 
+          {/* SHOP WHEELS + mega menu */}
           <div
             className="relative"
             ref={dropdownRef}
@@ -157,7 +156,7 @@ export default function HeaderHome() {
             <button
               type="button"
               onClick={handleToggleClick}
-              className={`${buttonBase} ${buttonColor} flex items-center gap-2`}
+              className={`${buttonBase} ${buttonColor}`}
             >
               <span>SHOP WHEELS</span>
               <span
@@ -171,57 +170,115 @@ export default function HeaderHome() {
 
             {menuOpen && (
               <div
-                className="
-                            absolute left-0 mt-3
-                            w-[560px]
-                            rounded-3xl
-                            border border-white/10
-                            bg-slate-900/80
-                            text-slate-50
-                            backdrop-blur-2xl
-                            shadow-[0_24px_80px_rgba(15,23,42,0.65)]
-                            p-6
-                            flex gap-6
-                            animate-[menuFadeIn_0.18s_ease-out]
-                            "
+                className={`
+                  absolute left-0 mt-6 w-[720px] max-w-[calc(100vw-2rem)]
+                  rounded-3xl border
+                  ${dropdownTheme}
+                  animate-[menuFadeIn_0.18s_ease-out]
+                `}
               >
-                {/* 左侧列表 */}
-                <div className="w-1/2 flex flex-col gap-2 text-sm">
-                  {megaItems.map((item) => {
-                    const isActive = item.id === activeItemId
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onMouseEnter={() => setActiveItemId(item.id)}
-                        onFocus={() => setActiveItemId(item.id)}
-                        className={`
-                          w-full text-left rounded-xl px-3 py-2
-                          transition-colors
-                          ${isActive ? 'bg-white/10 text-white' : 'text-slate-100 hover:bg-white/5'}
-                        `}
-                      >
-                        <div className="text-sm font-semibold">{item.title}</div>
-                        <div className="text-xs text-slate-300">{item.subtitle}</div>
-                      </button>
-                    )
-                  })}
+                <div className="flex flex-col gap-0 p-4 sm:flex-row sm:gap-6 sm:p-6">
+                  {/* 左侧：三个选项 */}
+                  <div className="w-full flex-1 space-y-1">
+                    {/* By Vehicle */}
+                    <button
+                      type="button"
+                      onMouseEnter={() => setActiveItem('vehicle')}
+                      className={`w-full rounded-2xl px-4 py-3 text-left transition-colors ${
+                        activeItem === 'vehicle' ? dropdownActiveBg : dropdownInactiveBg
+                      }`}
+                    >
+                      <div className="text-sm font-semibold">By Vehicle</div>
+                      <div className={`mt-1 text-xs ${dropdownMutedText}`}>
+                        Search wheels by exact fitment
+                      </div>
+                    </button>
 
-                  {/* 分隔线和“View all wheels”之类的 CTA 以后可以加 */}
-                </div>
+                    {/* Aftermarket */}
+                    <button
+                      type="button"
+                      onMouseEnter={() => setActiveItem('aftermarket')}
+                      className={`w-full rounded-2xl px-4 py-3 text-left transition-colors ${
+                        activeItem === 'aftermarket' ? dropdownActiveBg : dropdownInactiveBg
+                      }`}
+                    >
+                      <div className="text-sm font-semibold">Aftermarket Wheels</div>
+                      <div className={`mt-1 text-xs ${dropdownMutedText}`}>
+                        Performance & aesthetic focused
+                      </div>
+                    </button>
 
-                {/* 右侧高亮卡片 */}
-                <div className="w-1/2 rounded-2xl bg-white text-slate-900 shadow-sm p-5 flex flex-col justify-center">
-                  <div className="flex items-center justify-center h-20 mb-3">
-                    {/* 占位图标：以后可以换成轮毂图、icon 等 */}
-                    <div className="h-10 w-10 rounded-full border border-slate-200 flex items-center justify-center">
-                      <span className="text-xs text-slate-400">RS</span>
-                    </div>
+                    {/* OEM */}
+                    <button
+                      type="button"
+                      onMouseEnter={() => setActiveItem('oem')}
+                      className={`w-full rounded-2xl px-4 py-3 text-left transition-colors ${
+                        activeItem === 'oem' ? dropdownActiveBg : dropdownInactiveBg
+                      }`}
+                    >
+                      <div className="text-sm font-semibold">OEM Wheels</div>
+                      <div className={`mt-1 text-xs ${dropdownMutedText}`}>
+                        Original factory wheels
+                      </div>
+                    </button>
                   </div>
 
-                  <div className="text-base font-semibold mb-1">{activeItem.highlightTitle}</div>
-                  <div className="text-xs text-slate-600 leading-relaxed">
-                    {activeItem.highlightDesc}
+                  {/* 右侧：详情卡片 */}
+                  <div className="mt-4 w-full flex-1 rounded-3xl bg-white text-slate-900 shadow-inner/10 sm:mt-0 sm:ml-2 sm:px-0 sm:py-0">
+                    <div className="flex h-full flex-col gap-4 rounded-3xl bg-white px-6 py-5 shadow-[0_12px_40px_rgba(15,23,42,0.12)]">
+                      {/* RS 圆形标记 */}
+                      <div className="flex items-center justify-center">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 text-xs font-semibold text-slate-500">
+                          RS
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-base font-semibold">{detail[activeItem].title}</h3>
+                        <p className="mt-2 text-sm text-slate-600">{detail[activeItem].body[0]}</p>
+                        <p className="mt-1 text-sm text-slate-600">{detail[activeItem].body[1]}</p>
+                      </div>
+
+                      {/* 行为按钮：根据 activeItem 跳链接 */}
+                      <div className="mt-3">
+                        {activeItem === 'vehicle' && (
+                          <Link
+                            href="/shop/by-vehicle"
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 underline underline-offset-4"
+                            onClick={() => {
+                              setMenuOpen(false)
+                              setPinned(false)
+                            }}
+                          >
+                            Start vehicle search →
+                          </Link>
+                        )}
+                        {activeItem === 'aftermarket' && (
+                          <Link
+                            href="/aftermarket"
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 underline underline-offset-4"
+                            onClick={() => {
+                              setMenuOpen(false)
+                              setPinned(false)
+                            }}
+                          >
+                            Browse aftermarket wheels →
+                          </Link>
+                        )}
+                        {activeItem === 'oem' && (
+                          <Link
+                            href="/oem"
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 underline underline-offset-4"
+                            onClick={() => {
+                              setMenuOpen(false)
+                              setPinned(false)
+                            }}
+                          >
+                            View OEM replacements →
+                          </Link>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -230,13 +287,9 @@ export default function HeaderHome() {
         </div>
 
         {/* 右侧：导航 + 分割线 + 登录/购物车/结账 */}
-        <div className="flex items-center gap-8 text-xs font-semibold tracking-[0.12em]">
+        <div className="flex items-center gap-4 text-xs font-semibold tracking-[0.12em]">
           <nav
-            className={`
-              hidden md:flex
-              gap-8 text-xs font-semibold tracking-[0.16em]
-              ${textColor}
-            `}
+            className={`hidden md:flex gap-8 text-xs font-semibold tracking-[0.16em] ${textColor}`}
           >
             <Link href="/gallery" className="hover:opacity-80">
               GALLERY
@@ -249,9 +302,9 @@ export default function HeaderHome() {
             </Link>
           </nav>
 
-          <div className="hidden md:block h-4 w-px bg-slate-400/40" />
+          <div className="hidden h-4 w-px bg-slate-400/40 md:block" />
 
-          <div className={`hidden md:flex items-center gap-4 ${textColor}`}>
+          <div className={`hidden items-center gap-4 md:flex ${textColor}`}>
             <Link href="/login" className="hover:opacity-80">
               LOG IN
             </Link>

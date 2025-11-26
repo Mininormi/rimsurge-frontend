@@ -2,10 +2,16 @@
 const nextConfig = {
   images: {
     remotePatterns: [
+      // 原来的 RAYS 域名
       {
         protocol: 'https',
         hostname: 'www.rayswheels.co.jp',
-        // pathname: '/lacne/news/upload/new_arrival/**', // 想更严一点可以加这行
+      },
+
+      // 新增的 Freepik 加拿大国旗图标域名
+      {
+        protocol: 'https',
+        hostname: 'cdn-icons-png.freepik.com',
       },
     ],
   },

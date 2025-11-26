@@ -1,5 +1,6 @@
 // components/HeroSection.tsx
 import HeroVideo from './HeroVideo'
+import Image from 'next/image'
 
 export default function HeroSection() {
   return (
@@ -8,27 +9,47 @@ export default function HeroSection() {
       <HeroVideo />
 
       {/* 文案层 */}
-      <div className="relative z-10 px-6 md:px-16 text-white max-w-xl space-y-4">
-        <h1 className="text-4xl font-extrabold md:text-5xl">Rimsurge · Wheels Only</h1>
-
-        <p className="text-lg text-slate-200">
-          改装轮毂 & OEM 原厂轮毂，专注加拿大市场的专业轮毂商店。
-        </p>
-
-        <div className="mt-4 flex gap-4">
-          <a
-            href="/aftermarket"
-            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-black hover:bg-slate-200"
+      <div className="absolute left-0 right-0 top-[30%] mx-auto max-w-6xl px-4 select-none">
+        <div className="space-y-4">
+          {/* 主标题 */}
+          <h1
+            className="
+              text-white 
+              font-black 
+              tracking-tight 
+              leading-[1.08]
+              text-4xl md:text-6xl
+              drop-shadow-[0_4px_18px_rgba(0,0,0,0.55)]
+            "
           >
-            改装轮毂
-          </a>
+            Built for Drivers.
+            <br />
+            <span className="text-white/90">Priced for Real Life.</span>
+          </h1>
 
-          <a
-            href="/oem"
-            className="rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-white hover:border-white"
+          {/* 加拿大标语 Badge */}
+          <div
+            className="
+              inline-flex items-center gap-2
+              rounded-full
+              bg-white/92
+              px-4 py-1.5
+              text-[13px] md:text-sm
+              font-semibold
+              text-slate-900
+              shadow-[0_8px_26px_rgba(15,23,42,0.35)]
+            "
           >
-            OEM 原厂轮毂
-          </a>
+            <Image
+              src="https://cdn-icons-png.freepik.com/256/12363/12363960.png"
+              alt="Canada Flag"
+              width={18}
+              height={18}
+              className="rounded-sm"
+            />
+
+            <span>A New Canadian Way to Upgrade — Same Quality, Smarter Costs.</span>
+          </div>
         </div>
       </div>
     </section>
