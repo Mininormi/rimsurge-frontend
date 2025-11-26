@@ -18,6 +18,7 @@ set timestamp=%timestamp: =0%
 
 echo Commit message: auto-update-%timestamp%
 
+chcp 65001 >nul
 :: 执行 Git 命令
 git add .
 git commit -m "auto-update-%timestamp%"
