@@ -36,3 +36,18 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+
+@keyframes tab-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-fade-in-up {
+  animation: tab-fade-in-up 0.35s ease-out;
+}

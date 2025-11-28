@@ -32,7 +32,7 @@ export default function BenefitsBar() {
           md:gap-6 md:px-8 md:py-5
         "
       >
-        {/* 1️⃣ 100% Fitment Guarantee */}
+        {/* 1️⃣ Fitment Consultation & Local Support */}
         <BenefitItem
           icon={
             <svg className="h-4 w-4 text-slate-900" viewBox="0 0 24 24" aria-hidden="true">
@@ -47,8 +47,8 @@ export default function BenefitsBar() {
               />
             </svg>
           }
-          title="100% Fitment Guarantee"
-          description="Guaranteed after Rimsurge consultation — free replacement if it doesn’t fit."
+          title="Fitment Consultation & Local Support"
+          description="Professional fitment advice based on model data and industry-standard tools."
         />
 
         {/* 2️⃣ Smart Shipping Options */}

@@ -36,14 +36,6 @@ export default function NewArrivalsSplide() {
         py-10
       "
     >
-      {/* 标题：限制在中间宽度 */}
-      <div className="mx-auto max-w-6xl px-4">
-        <h2 className="mb-6 flex items-center gap-3 text-3xl font-medium">
-          <span className="h-8 w-1 rounded-full bg-gray-900" />
-          New Arrivals
-        </h2>
-      </div>
-
       {/* 轮毂轮播：全屏宽，居中+两边露半张 */}
       <Splide
         aria-label="New Rims"
