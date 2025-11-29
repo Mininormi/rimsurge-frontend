@@ -1,26 +1,21 @@
-/*
- * \app\admin\brands\[id]\route.ts
- */
-
 // app/api/brands/[id]/route.ts
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-type Context = {
-  params: { id: string }
-}
+// 注意：Next 16 这里的 params 是 Promise
+type ParamsPromise = { params: Promise<{ id: string }> }
 
-function parseId(params: Context['params']) {
-  const id = Number(params.id)
-  if (!Number.isInteger(id)) {
-    return null
-  }
+function parseId(idStr: string) {
+  const id = Number(idStr)
+  if (!Number.isInteger(id)) return null
   return id
 }
 
-// GET /api/brands/:id  —— 编辑页加载时用
-export async function GET(_req: NextRequest, { params }: Context) {
-  const id = parseId(params)
+// GET /api/brands/:id  —— 编辑页加载
+export async function GET(_req: NextRequest, { params }: ParamsPromise) {
+  const { id: idStr } = await params
+  const id = parseId(idStr)
+
   if (id === null) {
     return new Response(JSON.stringify({ message: 'Invalid id' }), {
       status: 400,
@@ -38,9 +33,11 @@ export async function GET(_req: NextRequest, { params }: Context) {
   return Response.json(brand)
 }
 
-// PATCH /api/brands/:id  —— 编辑保存
-export async function PATCH(req: NextRequest, { params }: Context) {
-  const id = parseId(params)
+// PATCH /api/brands/:id  —— 保存编辑
+export async function PATCH(req: NextRequest, { params }: ParamsPromise) {
+  const { id: idStr } = await params
+  const id = parseId(idStr)
+
   if (id === null) {
     return new Response(JSON.stringify({ message: 'Invalid id' }), {
       status: 400,
@@ -61,9 +58,11 @@ export async function PATCH(req: NextRequest, { params }: Context) {
   return Response.json(brand)
 }
 
-// DELETE /api/brands/:id  —— 列表里的 Delete 按钮用
-export async function DELETE(_req: NextRequest, { params }: Context) {
-  const id = parseId(params)
+// DELETE /api/brands/:id  —— 列表删除
+export async function DELETE(_req: NextRequest, { params }: ParamsPromise) {
+  const { id: idStr } = await params
+  const id = parseId(idStr)
+
   if (id === null) {
     return new Response(JSON.stringify({ message: 'Invalid id' }), {
       status: 400,
