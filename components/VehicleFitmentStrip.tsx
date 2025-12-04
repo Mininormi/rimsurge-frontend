@@ -1,6 +1,7 @@
 // components/VehicleFitmentStrip.tsx
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 
 type Option = { value: string; label: string }
@@ -135,8 +136,8 @@ export default function VehicleFitmentStrip() {
               </div>
 
               {/* CTA 按钮：纯黑系 */}
-              <button
-                type="button"
+              <Link
+                href="/shop/all"
                 className="
                   mt-1 md:mt-0
                   inline-flex items-center justify-center whitespace-nowrap
@@ -151,7 +152,7 @@ export default function VehicleFitmentStrip() {
                 "
               >
                 Find Wheels
-              </button>
+              </Link>
             </div>
           </div>
         </div>
