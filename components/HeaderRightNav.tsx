@@ -28,9 +28,7 @@ export function HeaderRightNav({ textColor }: { textColor: string }) {
         <Link href="/cart" className="hover:opacity-80">
           CART (0)
         </Link>
-        <Link href="/checkout" className="hover:opacity-80">
-          CHECKOUT
-        </Link>
+
       </div>
     </div>
   )

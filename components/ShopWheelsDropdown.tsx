@@ -4,7 +4,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
-type MenuKey = 'vehicle' | 'pcd' | 'brand'
+type MenuKey = 'vehicle' | 'pcd' | 'brand' | 'accessories'
 
 export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -107,6 +107,20 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
         'We only list authentic stock that is ready to ship to Canada with duties included.',
       ],
     },
+    accessories: {
+      title: 'Wheel Accessories',
+      body: [
+        'Complete your wheel setup with quality accessories including center caps, valve stems, lug nuts, and more.',
+        'All accessories are compatible with our wheel selection and ready to ship.',
+      ],
+    },
+  } as const
+
+  const menuLinks = {
+    vehicle: '/shop/by-vehicle',
+    pcd: '/shop/by-pcd',
+    brand: '/shop/by-brand',
+    accessories: '/shop/accessories',
   } as const
 
   return (
@@ -135,13 +149,17 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
           `}
         >
           <div className="flex flex-col gap-0 p-4 sm:flex-row sm:gap-6 sm:p-6">
-            {/* 左侧：三个选项 */}
+            {/* 左侧：四个选项 */}
             <div className="w-full flex-1 space-y-1">
               {/* By Vehicle */}
-              <button
-                type="button"
+              <Link
+                href={menuLinks.vehicle}
                 onMouseEnter={() => setActiveItem('vehicle')}
-                className={`w-full rounded-2xl px-4 py-3 text-left transition-colors ${
+                onClick={() => {
+                  setMenuOpen(false)
+                  setPinned(false)
+                }}
+                className={`block w-full rounded-2xl px-4 py-3 text-left transition-colors ${
                   activeItem === 'vehicle' ? dropdownActiveBg : dropdownInactiveBg
                 }`}
               >
@@ -149,13 +167,17 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
                 <div className={`mt-1 text-xs ${dropdownMutedText}`}>
                   Search wheels by exact fitment
                 </div>
-              </button>
+              </Link>
 
               {/* By PCD */}
-              <button
-                type="button"
+              <Link
+                href={menuLinks.pcd}
                 onMouseEnter={() => setActiveItem('pcd')}
-                className={`w-full rounded-2xl px-4 py-3 text-left transition-colors ${
+                onClick={() => {
+                  setMenuOpen(false)
+                  setPinned(false)
+                }}
+                className={`block w-full rounded-2xl px-4 py-3 text-left transition-colors ${
                   activeItem === 'pcd' ? dropdownActiveBg : dropdownInactiveBg
                 }`}
               >
@@ -163,13 +185,17 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
                 <div className={`mt-1 text-xs ${dropdownMutedText}`}>
                   Find wheels by bolt pattern
                 </div>
-              </button>
+              </Link>
 
               {/* By Brand */}
-              <button
-                type="button"
+              <Link
+                href={menuLinks.brand}
                 onMouseEnter={() => setActiveItem('brand')}
-                className={`w-full rounded-2xl px-4 py-3 text-left transition-colors ${
+                onClick={() => {
+                  setMenuOpen(false)
+                  setPinned(false)
+                }}
+                className={`block w-full rounded-2xl px-4 py-3 text-left transition-colors ${
                   activeItem === 'brand' ? dropdownActiveBg : dropdownInactiveBg
                 }`}
               >
@@ -177,7 +203,25 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
                 <div className={`mt-1 text-xs ${dropdownMutedText}`}>
                   Browse wheels by manufacturer
                 </div>
-              </button>
+              </Link>
+
+              {/* 轮毂配件 */}
+              <Link
+                href={menuLinks.accessories}
+                onMouseEnter={() => setActiveItem('accessories')}
+                onClick={() => {
+                  setMenuOpen(false)
+                  setPinned(false)
+                }}
+                className={`block w-full rounded-2xl px-4 py-3 text-left transition-colors ${
+                  activeItem === 'accessories' ? dropdownActiveBg : dropdownInactiveBg
+                }`}
+              >
+                <div className="text-sm font-semibold">ACCESSORIES</div>
+                <div className={`mt-1 text-xs ${dropdownMutedText}`}>
+                  Wheel accessories and parts
+                </div>
+              </Link>
             </div>
 
             {/* 右侧：详情卡片 */}
@@ -200,7 +244,7 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
                 <div className="mt-3">
                   {activeItem === 'vehicle' && (
                     <Link
-                      href="/shop/by-vehicle"
+                      href={menuLinks.vehicle}
                       className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 underline underline-offset-4"
                       onClick={() => {
                         setMenuOpen(false)
@@ -212,7 +256,7 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
                   )}
                   {activeItem === 'pcd' && (
                     <Link
-                      href="/shop/by-pcd"
+                      href={menuLinks.pcd}
                       className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 underline underline-offset-4"
                       onClick={() => {
                         setMenuOpen(false)
@@ -224,7 +268,7 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
                   )}
                   {activeItem === 'brand' && (
                     <Link
-                      href="/shop/by-brand"
+                      href={menuLinks.brand}
                       className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 underline underline-offset-4"
                       onClick={() => {
                         setMenuOpen(false)
@@ -232,6 +276,18 @@ export function ShopWheelsDropdown({ scrolled }: { scrolled: boolean }) {
                       }}
                     >
                       Browse by brand →
+                    </Link>
+                  )}
+                  {activeItem === 'accessories' && (
+                    <Link
+                      href={menuLinks.accessories}
+                      className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 underline underline-offset-4"
+                      onClick={() => {
+                        setMenuOpen(false)
+                        setPinned(false)
+                      }}
+                    >
+                      Browse accessories →
                     </Link>
                   )}
                 </div>
