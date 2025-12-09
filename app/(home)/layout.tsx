@@ -1,6 +1,6 @@
-// \app\(site)\layout.tsx
+// \app\(home)\layout.tsx
 
-// app/(site)/layout.tsx
+
 
 import HeaderSwitcher from '@/components/HeaderSwitcher'
 import { Footer } from '@/components/Footer'

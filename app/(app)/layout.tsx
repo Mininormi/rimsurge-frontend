@@ -1,9 +1,9 @@
-// app/shop/layout.tsx
+// app/(app)/layout.tsx
 import type { ReactNode } from 'react'
 import HeaderSwitcher from '@/components/HeaderSwitcher'
 import { Footer } from '@/components/Footer'
 
-export default function ShopLayout({ children }: { children: ReactNode }) {
+export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="relative z-10 flex min-h-screen flex-col bg-slate-50">
       <HeaderSwitcher />
@@ -15,3 +15,4 @@ export default function ShopLayout({ children }: { children: ReactNode }) {
     </div>
   )
 }
+

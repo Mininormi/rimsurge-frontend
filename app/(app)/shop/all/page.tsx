@@ -1,4 +1,6 @@
-// app/shop/all/page.tsx
+// \app\(app)\shop\all\page.tsx
+
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
