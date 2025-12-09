@@ -3,6 +3,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function GalleryPage() {
   const [selectedBrand, setSelectedBrand] = useState('')
@@ -143,8 +144,9 @@ export default function GalleryPage() {
       <section className="mx-auto max-w-6xl px-4 pb-10 md:pb-12">
         <div className="grid grid-cols-2 gap-4 md:gap-6">
           {getCurrentPageItems().map((item) => (
-            <div
+            <Link
               key={item}
+              href={`/gallery/detail/gallery-item-${item}`}
               className="group relative aspect-square overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50 shadow-sm transition-all hover:border-slate-400 hover:shadow-md"
             >
               <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
@@ -161,7 +163,7 @@ export default function GalleryPage() {
               </div>
               {/* 悬停效果 */}
               <div className="absolute inset-0 bg-slate-900/0 transition-colors group-hover:bg-slate-900/5" />
-            </div>
+            </Link>
           ))}
         </div>
       </section>
