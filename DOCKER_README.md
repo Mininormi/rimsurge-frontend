@@ -40,9 +40,10 @@ docker-compose exec php chmod -R 755 /var/www/html/runtime
 
 ### 5. 访问应用
 
-- 前台：http://localhost:8080
-- 后台：http://localhost:8080/admin.php
-- 安装页面：http://localhost:8080/install.php（首次访问）
+- **FastAdmin 前台**：http://localhost:8080
+- **FastAdmin 后台**：http://localhost:8080/admin.php
+- **FastAdmin 安装页面**：http://localhost:8080/install.php（首次访问）
+- **Next.js 前端**：http://localhost:3000
 
 ## 数据库配置
 
@@ -74,6 +75,9 @@ docker-compose logs nginx
 
 # 查看 MySQL 服务日志
 docker-compose logs mysql
+
+# 查看前端服务日志
+docker-compose logs frontend
 ```
 
 ### 进入容器
@@ -83,6 +87,9 @@ docker-compose exec php bash
 
 # 进入 MySQL 容器
 docker-compose exec mysql bash
+
+# 进入前端容器
+docker-compose exec frontend sh
 ```
 
 ### 停止服务
@@ -123,6 +130,13 @@ docker-compose build --no-cache
 - 数据持久化: Docker volume `mysql_data`
 - 字符集: utf8mb4
 - 排序规则: utf8mb4_unicode_ci
+
+### Next.js 前端
+- 容器名: `rimsurge_frontend`
+- 端口映射: `3000:3000`
+- 工作目录: `/app`
+- 开发模式: 支持热重载（Hot Reload）
+- 环境: Node.js 20 (Alpine)
 
 ## 故障排查
 
@@ -176,5 +190,7 @@ docker-compose exec php composer install --no-cache
 2. **数据库主机**: 在容器内连接数据库时，使用服务名 `mysql`；在宿主机连接时，使用 `127.0.0.1`
 3. **数据持久化**: MySQL 数据存储在 Docker volume 中，删除容器不会丢失数据（除非使用 `docker-compose down -v`）
 4. **文件修改**: 修改代码后无需重启容器，PHP-FPM 会自动加载新代码
-5. **端口冲突**: 如果 8080 或 3306 端口被占用，可以在 `docker-compose.yml` 中修改端口映射
+5. **端口冲突**: 如果 8080、3000 或 3306 端口被占用，可以在 `docker-compose.yml` 中修改端口映射
+6. **前端热重载**: Next.js 前端支持热重载，修改代码后会自动刷新（可能需要几秒钟）
+7. **前端依赖**: 首次启动前端服务会自动安装 npm 依赖，可能需要几分钟时间
 
