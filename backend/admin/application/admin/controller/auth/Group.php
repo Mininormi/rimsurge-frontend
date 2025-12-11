@@ -3,7 +3,6 @@
 namespace app\admin\controller\auth;
 
 use app\admin\model\AuthGroup;
-use app\admin\model\AuthGroupAccess;
 use app\common\controller\Backend;
 use fast\Tree;
 use think\Db;
@@ -39,24 +38,22 @@ class Group extends Backend
 
         $groupList = collection(AuthGroup::where('id', 'in', $this->childrenGroupIds)->select())->toArray();
 
+        Tree::instance()->init($groupList);
+        $groupList = [];
         if ($this->auth->isSuperAdmin()) {
-            $tree = Tree::instance()->init($groupList);
-            $groupList = $tree->getTreeList($tree->getTreeArray(0));
+            $groupList = Tree::instance()->getTreeList(Tree::instance()->getTreeArray(0));
         } else {
             $groups = $this->auth->getGroups();
-            $allIds = array_column($groups, 'id');
-
-            foreach ($groups as &$item) {
-                $item['parent_id'] = $item['pid'];
-                if (!in_array($item['parent_id'], $allIds)) {
-                    $item['parent_id'] = 0;
+            $groupIds = [];
+            foreach ($groups as $m => $n) {
+                if (in_array($n['id'], $groupIds) || in_array($n['pid'], $groupIds)) {
+                    continue;
                 }
-                $item['status'] = 'normal';
+                $groupList = array_merge($groupList, Tree::instance()->getTreeList(Tree::instance()->getTreeArray($n['pid'])));
+                foreach ($groupList as $index => $item) {
+                    $groupIds[] = $item['id'];
+                }
             }
-            unset($item);
-
-            $tree = Tree::instance()->init($groups, 'parent_id');
-            $groupList = $tree->getTreeList($tree->getTreeArray(0));
         }
         $groupName = [];
         foreach ($groupList as $k => $v) {
@@ -178,6 +175,7 @@ class Group extends Backend
                 }
             }
             $this->error();
+            return;
         }
         $this->view->assign("row", $row);
         return $this->view->fetch();
@@ -258,10 +256,7 @@ class Group extends Backend
         }
         if (($pid || $parentGroupModel) && (!$id || $currentGroupModel)) {
             $id = $id ? $id : null;
-            $ruleList = Db::name("auth_rule")
-                ->field('id,pid,name,title,icon,ismenu,status,weigh')
-                ->order('weigh DESC,id ASC')
-                ->select();
+            $ruleList = collection(model('AuthRule')->order('weigh', 'desc')->order('id', 'asc')->select())->toArray();
             //读取父类角色所有节点列表
             $parentRuleList = [];
             if (in_array('*', explode(',', $parentGroupModel->rules))) {

@@ -33,7 +33,7 @@ class User extends Model
      */
     public function getUrlAttr($value, $data)
     {
-        return str_replace("{uid}", $data['id'], config('fastadmin.user_home_url') ?: "/u/{uid}");
+        return "/u/" . $data['id'];
     }
 
     /**
@@ -45,9 +45,11 @@ class User extends Model
     public function getAvatarAttr($value, $data)
     {
         if (!$value) {
-            $value = config('fastadmin.user_letter_avatar') ? letter_avatar($data['nickname']) : (config('fastadmin.user_default_avatar') ?: '/assets/img/avatar.png');
+            //如果不需要启用首字母头像，请使用
+            //$value = '/assets/img/avatar.png';
+            $value = letter_avatar($data['nickname']);
         }
-        return cdnurl($value, true);
+        return $value;
     }
 
     /**
@@ -80,16 +82,6 @@ class User extends Model
     {
         $value = is_object($value) || is_array($value) ? json_encode($value) : $value;
         return $value;
-    }
-
-    /**
-     * 判断指定字段的值是否存在
-     * @param string $field 字段名
-     * @param string $value 字段值
-     */
-    public static function checkExists($field, $value)
-    {
-        return self::lock(true)->where($field, $value)->find();
     }
 
     /**
@@ -132,16 +124,9 @@ class User extends Model
             if ($user && $score != 0) {
                 $before = $user->score;
                 $after = $user->score + $score;
-                $data = ['score' => $after];
-                $levelrule = config('fastadmin.user_level_rule') ?: '';
-                if (in_array($levelrule, ['auto', 'up'])) {
-                    $level = self::nextlevel($after);
-                    if ($levelrule == 'auto' || $level > $user['level']) {
-                        $data['level'] = $level;
-                    }
-                }
+                $level = self::nextlevel($after);
                 //更新会员信息
-                $user->save($data);
+                $user->save(['score' => $after, 'level' => $level]);
                 //写入日志
                 ScoreLog::create(['user_id' => $user_id, 'score' => $score, 'before' => $before, 'after' => $after, 'memo' => $memo]);
             }
@@ -158,9 +143,9 @@ class User extends Model
      */
     public static function nextlevel($score = 0)
     {
-        $levelDict = config('fastadmin.user_level_dict') ?: [];
+        $lv = array(1 => 0, 2 => 30, 3 => 100, 4 => 500, 5 => 1000, 6 => 2000, 7 => 3000, 8 => 5000, 9 => 8000, 10 => 10000);
         $level = 1;
-        foreach ($levelDict as $key => $value) {
+        foreach ($lv as $key => $value) {
             if ($score >= $value) {
                 $level = $key;
             }

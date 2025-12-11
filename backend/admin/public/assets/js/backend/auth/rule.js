@@ -14,8 +14,6 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form', 'template'], function
                 }
             });
 
-            var isExpanded = false;
-
             var table = $("#table");
 
             // 初始化表格
@@ -31,7 +29,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form', 'template'], function
                         {field: 'icon', title: __('Icon'), formatter: Controller.api.formatter.icon},
                         {field: 'name', title: __('Name'), align: 'left', formatter: Controller.api.formatter.name},
                         {field: 'weigh', title: __('Weigh')},
-                        {field: 'status', title: __('Status'), formatter: Table.api.formatter.status, operate: false},
+                        {field: 'status', title: __('Status'), formatter: Table.api.formatter.status},
                         {
                             field: 'ismenu',
                             title: __('Ismenu'),
@@ -52,13 +50,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form', 'template'], function
                 search: false,
                 commonSearch: false,
                 rowAttributes: function (row, index) {
-                    return row.pid == 0 || isExpanded ? {} : {style: "display:none"};
-                }
-            });
-
-            table.on('post-body.bs.table', function (e, data) {
-                if (data.length > 2000) {
-                    $(".btn-dragsort").addClass("disabled");
+                    return row.pid == 0 ? {} : {style: "display:none"};
                 }
             });
 
@@ -149,7 +141,6 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form', 'template'], function
                 $(".btn-node-sub:not([data-pid=0])").closest("tr").toggle(show);
                 $(".btn-node-sub").data("shown", show);
                 $(".btn-node-sub > i").toggleClass("fa-caret-down", show).toggleClass("fa-caret-right", !show);
-                isExpanded = show;
             });
         },
         add: function () {
@@ -161,11 +152,13 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form', 'template'], function
         api: {
             formatter: {
                 title: function (value, row, index) {
+                    value = value.toString().replace(/(&|&amp;)nbsp;/g, '&nbsp;');
                     var caret = row.haschild == 1 || row.ismenu == 1 ? '<i class="fa fa-caret-right"></i>' : '';
+                    value = value.indexOf("&nbsp;") > -1 ? value.replace(/(.*)&nbsp;/, "$1" + caret) : caret + value;
 
                     value = !row.ismenu || row.status == 'hidden' ? "<span class='text-muted'>" + value + "</span>" : value;
                     return '<a href="javascript:;" data-id="' + row.id + '" data-pid="' + row.pid + '" class="'
-                        + (row.haschild == 1 || row.ismenu == 1 ? 'text-primary' : 'disabled') + ' btn-node-sub">' + ('&nbsp'.repeat(row.level)) + ('&nbsp;'.repeat(parseInt(row.level) * 4)) + caret + '&nbsp;' + value + '</a>';
+                        + (row.haschild == 1 || row.ismenu == 1 ? 'text-primary' : 'disabled') + ' btn-node-sub">' + value + '</a>';
                 },
                 name: function (value, row, index) {
                     return !row.ismenu || row.status == 'hidden' ? "<span class='text-muted'>" + value + "</span>" : value;

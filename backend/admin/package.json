@@ -1,13 +1,13 @@
 {
   "name": "fastadmin",
-  "version": "1.7.0",
+  "version": "1.6.1",
   "description": "FastAdmin是一款基于ThinkPHP+Bootstrap的极速后台开发框架。",
   "scripts": {
     "build": "grunt"
   },
   "repository": {
     "type": "git",
-    "url": "git@gitee.com:fastadminnet/fastadmin.git"
+    "url": "git@gitee.com:karson/fastadmin.git"
   },
   "dependencies": {
     "bootstrap": "npm:fastadmin-bootstrap@^3.4.1",
@@ -24,7 +24,6 @@
     "fastadmin-layer": "^3.5.6",
     "fastadmin-selectpage": "^1.1.1",
     "fastadmin-nicevalidator": "^1.1.6",
-    "fastadmin-tagsinput": "^1.0.0",
     "art-template": "npm:fastadmin-arttemplate@^3.1.4",
     "bootstrap-table": "npm:fastadmin-bootstraptable@^1.11.12",
     "nice-validator": "npm:fastadmin-nicevalidator@^1.1.6",
@@ -84,7 +83,6 @@
     "fastadmin-dragsort": "*.js",
     "fastadmin-layer": "dist/**",
     "fastadmin-selectpage": "*",
-    "fastadmin-tagsinput": "dist/bootstrap-tagsinput.min.js",
     "font-awesome": [
       "css/**",
       "fonts/**"

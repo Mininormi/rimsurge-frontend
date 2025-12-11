@@ -269,42 +269,18 @@ return [
     'fastadmin'              => [
         //是否开启前台会员中心
         'usercenter'            => true,
-        //是否开启用户注册，不会影响使用手机号快捷注册登录
-        'user_register'         => true,
-        //会员注册验证码类型,支持email/mobile/wechat/text/false
+        //会员注册验证码类型email/mobile/wechat/text/false
         'user_register_captcha' => 'text',
-        //是否启用发送前验证码(用于短信和邮件发送)
-        'user_api_captcha'      => false,
-        //会员登录默认类型,支持mobile和account
-        'user_login_type'       => 'account',
-        //会员登录有效期时长(秒)
-        'user_login_keeptime'   => 2592000,
-        //会员允许输出的字段
-        'user_allow_fields'     => ['id', 'username', 'nickname', 'mobile', 'avatar', 'score'],
-        //用户注册协议
-        'user_register_agreement' => true,
-        //会员主页URL规则，{uid}表示用户的ID
-        'user_home_url'         => '/u/{uid}',
-        //是否启用会员字母头像
-        'user_letter_avatar'    => true,
-        //会员默认头像，仅当user_letter_avatar为false时有效
-        'user_default_avatar'   => '/assets/img/avatar.png',
-        //是否启用会员等级规则,支持none/auto/up,none表示不影响等级,auto表示自动升降级,up表示只升不降
-        'user_level_rule'       => '',
-        //会员等级积分字典，键名表示等级，值表示所需的积分
-        'user_level_dict'       => [1 => 0, 2 => 30, 3 => 100, 4 => 500, 5 => 1000, 6 => 2000, 7 => 3000, 8 => 5000, 9 => 8000, 10 => 10000],
-        //后台登录验证码
+        //登录验证码
         'login_captcha'         => true,
-        //后台登录失败超过10次则1天后重试
+        //登录失败超过10次则1天后重试
         'login_failure_retry'   => true,
-        //后台是否同一账号同一时间只能在一个地方登录
+        //是否同一账号同一时间只能在一个地方登录
         'login_unique'          => false,
-        //后台是否开启IP变动检测
+        //是否开启IP变动检测
         'loginip_check'         => true,
-        //后台登录页默认背景图
+        //登录页默认背景图
         'login_background'      => "",
-        //是否启用简洁导航，如同时启用多级菜单导航，简洁导航将失效
-        'simplenav'             => false,
         //是否启用多级菜单导航
         'multiplenav'           => false,
         //是否开启多选项卡(仅在开启多级菜单时起作用)
@@ -326,7 +302,7 @@ return [
         //允许跨域的域名,多个以,分隔
         'cors_request_domain'   => 'localhost,127.0.0.1',
         //版本号
-        'version'               => '1.7.0.20250506',
+        'version'               => '1.6.1.20250430',
         //API接口地址
         'api_url'               => 'https://api.fastadmin.net',
     ],

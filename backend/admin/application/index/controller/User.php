@@ -7,7 +7,6 @@ use app\common\controller\Frontend;
 use app\common\library\Ems;
 use app\common\library\Sms;
 use app\common\model\Attachment;
-use fast\Random;
 use think\Config;
 use think\Cookie;
 use think\Hook;
@@ -20,7 +19,7 @@ use think\Validate;
 class User extends Frontend
 {
     protected $layout = 'default';
-    protected $noNeedLogin = ['login', 'mobilelogin', 'register', 'third', 'agreement'];
+    protected $noNeedLogin = ['login', 'register', 'third'];
     protected $noNeedRight = ['*'];
 
     public function _initialize()
@@ -66,12 +65,9 @@ class User extends Frontend
      */
     public function register()
     {
-        if (!config('fastadmin.user_register')) {
-            $this->error(__('User register already closed'));
-        }
         $url = $this->request->request('url', '', 'url_clean');
         if ($this->auth->id) {
-            $this->success(__('You\'ve logged in, do not login again'), $url ?: url('user/index'));
+            $this->success(__('You\'ve logged in, do not login again'), $url ? $url : url('user/index'));
         }
         if ($this->request->isPost()) {
             $username = $this->request->post('username');
@@ -96,9 +92,6 @@ class User extends Frontend
                 'email'            => 'Email is incorrect',
                 'mobile'           => 'Mobile is incorrect',
             ];
-            if (Validate::regex($username, '/^1\d{10}$/')) {
-                $this->error(__('Username can not be mobile'));
-            }
             $data = [
                 'username'  => $username,
                 'password'  => $password,
@@ -129,8 +122,7 @@ class User extends Frontend
                 $this->error(__($validate->getError()), null, ['token' => $this->request->token()]);
             }
             if ($this->auth->register($username, $password, $email, $mobile)) {
-                $this->auth->getUser()->save(['verification' => ['email' => $captchaType == 'email' ? 1 : 0, 'mobile' => $captchaType == 'mobile' ? 1 : 0]]);
-                $this->success(__('Sign up successful'), $url ?: url('user/index'));
+                $this->success(__('Sign up successful'), $url ? $url : url('user/index'));
             } else {
                 $this->error($this->auth->getError(), null, ['token' => $this->request->token()]);
             }
@@ -140,7 +132,6 @@ class User extends Frontend
         if (!$url && $referer && !preg_match("/(user\/login|user\/register|user\/logout)/i", $referer)) {
             $url = $referer;
         }
-
         $this->view->assign('captchaType', config('fastadmin.user_register_captcha'));
         $this->view->assign('url', $url);
         $this->view->assign('title', __('Register'));
@@ -184,7 +175,7 @@ class User extends Frontend
                 $this->error(__($validate->getError()), null, ['token' => $this->request->token()]);
             }
             if ($this->auth->login($account, $password)) {
-                $this->success(__('Logged in successful'), $url ?: url('user/index'), '', 0);
+                $this->success(__('Logged in successful'), $url ? $url : url('user/index'));
             } else {
                 $this->error($this->auth->getError(), null, ['token' => $this->request->token()]);
             }
@@ -192,57 +183,6 @@ class User extends Frontend
         //判断来源
         $referer = $this->request->server('HTTP_REFERER', '', 'url_clean');
         if (!$url && $referer && !preg_match("/(user\/login|user\/register|user\/logout)/i", $referer)) {
-            $url = $referer;
-        }
-        $this->view->assign('loginType', config('fastadmin.user_login_type') ?? 'mobile');
-        $this->view->assign('loginAction', config('fastadmin.user_login_type') === 'mobile' ? url('user/mobilelogin') : url('user/login'));
-        $this->view->assign('url', $url);
-        $this->view->assign('title', __('Login'));
-        return $this->view->fetch();
-    }
-
-    /**
-     * 手机号验证码登录
-     */
-    public function mobilelogin()
-    {
-        $url = $this->request->request('url', '', 'url_clean');
-        if ($this->request->isPost()) {
-            $mobile = $this->request->post('mobile');
-            $captcha = $this->request->post('smscode', $this->request->post('captcha'));
-            if (!$mobile || !$captcha) {
-                $this->error(__('Invalid parameters'));
-            }
-            if (!Validate::regex($mobile, "^1\d{10}$")) {
-                $this->error(__('Mobile is incorrect'));
-            }
-            if (!Sms::check($mobile, $captcha, 'mobilelogin')) {
-                $this->error(__('Captcha is incorrect'));
-            }
-            $user = \app\common\model\User::getByMobile($mobile);
-            if ($user) {
-                if ($user->status != 'normal') {
-                    $this->error(__('Account is locked'));
-                }
-                //如果已经有账号则直接登录
-                $ret = $this->auth->direct($user->id);
-            } else {
-                $username = \fast\Random::username();
-                $nickname = '用户' . substr($mobile, -4);
-                $ret = $this->auth->register($username, Random::alnum(), '', $mobile, ['nickname' => $nickname, 'verification' => ['mobile' => 1]]);
-            }
-            if ($ret) {
-                Sms::flush($mobile, 'mobilelogin');
-                $data = ['userinfo' => $this->auth->getUserinfo()];
-                $this->success(__('Logged in successful'), $url);
-            } else {
-                $this->error($this->auth->getError());
-            }
-        }
-        //判断来源
-        $referer = $this->request->server('HTTP_REFERER');
-        if (!$url && (strtolower(parse_url($referer, PHP_URL_HOST)) == strtolower($this->request->host()))
-            && !preg_match("/(user\/login|user\/register|user\/logout)/i", $referer)) {
             $url = $referer;
         }
         $this->view->assign('url', $url);
@@ -324,9 +264,6 @@ class User extends Frontend
         return $this->view->fetch();
     }
 
-    /**
-     *  附件管理
-     */
     public function attachment()
     {
         //设置过滤方法
@@ -391,15 +328,6 @@ class User extends Frontend
         $mimetype = substr($mimetype, -1) === '/' ? $mimetype . '*' : $mimetype;
         $this->view->assign('mimetype', $mimetype);
         $this->view->assign("mimetypeList", \app\common\model\Attachment::getMimetypeList());
-        return $this->view->fetch();
-    }
-
-    /**
-     * 用户协议
-     */
-    public function agreement()
-    {
-        $this->view->assign('title', __('User agreement'));
         return $this->view->fetch();
     }
 }

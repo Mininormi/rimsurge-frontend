@@ -41,6 +41,7 @@ class User extends Backend
             }
             list($where, $sort, $order, $offset, $limit) = $this->buildparams();
             $list = $this->model
+                ->with('group')
                 ->where($where)
                 ->order($sort, $order)
                 ->paginate($limit);
@@ -48,9 +49,7 @@ class User extends Backend
                 $v->avatar = $v->avatar ? cdnurl($v->avatar, true) : letter_avatar($v->nickname);
                 $v->hidden(['password', 'salt']);
             }
-            $rows = $list->items();
-            addtion($rows, [['field' => 'group_id', 'display' => 'group_name', 'model' => \app\admin\model\UserGroup::class]]);
-            $result = array("total" => $list->total(), "rows" => $rows);
+            $result = array("total" => $list->total(), "rows" => $list->items());
 
             return json($result);
         }

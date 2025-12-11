@@ -29,7 +29,7 @@ define(['jquery', 'bootstrap', 'dropzone', 'template'], function ($, undefined, 
                             }
                             var url = Config.upload.fullmode ? (data.fullurl ? data.fullurl : Fast.api.cdnurl(data.url)) : data.url;
                             urlArr.push(url);
-                            inputObj.val(urlArr.join(",")).trigger("change", [data]).trigger("validate");
+                            inputObj.val(urlArr.join(",")).trigger("change").trigger("validate");
                         }
                         //如果有回调函数
                         var onDomUploadSuccess = $(button).data("upload-success");
@@ -348,7 +348,7 @@ define(['jquery', 'bootstrap', 'dropzone', 'template'], function ($, undefined, 
                             textarea.val(JSON.stringify(result));
                         };
                         if (preview_id && input_id) {
-                            $(document.body).on("keyup change", "#" + input_id, function (e, data) {
+                            $(document.body).on("keyup change", "#" + input_id, function (e) {
                                 var inputStr = $("#" + input_id).val();
                                 var inputArr = inputStr.split(/\,/);
                                 var previewObj = $("#" + preview_id);
@@ -367,12 +367,11 @@ define(['jquery', 'bootstrap', 'dropzone', 'template'], function ($, undefined, 
                                     var suffix = /[\.]?([a-zA-Z0-9]+)$/.exec(j);
                                     suffix = suffix ? suffix[1] : 'file';
                                     var btnData = $(that).data();
-                                    var fullurl = typeof btnData.cdnurl !== 'undefined' ? Fast.api.cdnurl(j, btnData.cdnurl) : Fast.api.cdnurl(j);
+                                    var fullurl = typeof btnData.cdnurl!=='undefined' ? Fast.api.cdnurl(j, btnData.cdnurl) : Fast.api.cdnurl(j);
                                     j = Config.upload.fullmode ? fullurl : j;
                                     var value = (json && typeof json[i] !== 'undefined' ? json[i] : null);
-                                    // 只有最后一项才是透传的附件相关信息
-                                    var renderData = $.extend(true, data && typeof inputArr[i + 1] === 'undefined' ? data : {}, {url: j, fullurl: fullurl, data: btnData, key: i, index: i, value: value, row: value, suffix: suffix});
-                                    var html = tpl ? Template(tpl, renderData) : Template.render(Upload.config.previewtpl, renderData);
+                                    var data = {url: j, fullurl: fullurl, data: btnData, key: i, index: i, value: value, row: value, suffix: suffix};
+                                    var html = tpl ? Template(tpl, data) : Template.render(Upload.config.previewtpl, data);
                                     previewObj.append(html);
                                 });
                                 refresh(previewObj.data("name"));
@@ -380,40 +379,25 @@ define(['jquery', 'bootstrap', 'dropzone', 'template'], function ($, undefined, 
                             $("#" + input_id).trigger("change");
                         }
                         if (preview_id) {
-                            var previewObj = $("#" + preview_id);
-                            var mode = previewObj.data("mode") ? previewObj.data("mode") : "blank";
-                            // 如果是相册预览模式
-                            if (mode === 'photo') {
-                                previewObj.on('click', "a.thumbnail", function () {
-                                    var photoData = [];
-                                    $("[data-url]", previewObj).each(function (i, j) {
-                                        photoData.push({"src": $(j).attr("href")});
-                                    });
-                                    Layer.photos({
-                                        photos: {start: previewObj.find("a.thumbnail").index(this), data: photoData}
-                                    });
-                                    return false;
-                                });
-                            }
                             //监听文本框改变事件
-                            previewObj.on('change keyup', "input,textarea,select", function () {
+                            $("#" + preview_id).on('change keyup', "input,textarea,select", function () {
                                 refresh($(this).closest("ul").data("name"));
                             });
                             // 监听事件
                             $(document.body).on("fa.preview.change", "#" + preview_id, function () {
                                 var urlArr = [];
-                                $("[data-url]", previewObj).each(function (i, j) {
+                                $("#" + preview_id + " [data-url]").each(function (i, j) {
                                     urlArr.push($(this).data("url"));
                                 });
                                 if (input_id) {
                                     $("#" + input_id).val(urlArr.join(","));
                                 }
-                                refresh(previewObj.data("name"));
+                                refresh($("#" + preview_id).data("name"));
                             });
                             // 移除按钮事件
                             $(document.body).on("click", "#" + preview_id + " .btn-trash", function () {
                                 $(this).closest("li").remove();
-                                previewObj.trigger("fa.preview.change");
+                                $("#" + preview_id).trigger("fa.preview.change");
                             });
                         }
                         if (input_id) {
@@ -456,14 +440,10 @@ define(['jquery', 'bootstrap', 'dropzone', 'template'], function ($, undefined, 
                     return Upload.api.upload(element, onUploadSuccess, onUploadError, onUploadComplete);
                 },
                 // AJAX异步上传
-                send: function (file, onUploadSuccess, onUploadError, onUploadComplete, options) {
+                send: function (file, onUploadSuccess, onUploadError, onUploadComplete) {
                     var index = Layer.msg(__('Uploading'), {offset: 't', time: 0});
                     var id = "dropzone-" + Dropzone.uuidv4();
-                    var button = $('<button type="button" id="' + id + '" class="btn btn-danger hidden faupload" />');
-                    if (options && typeof options === 'object') {
-                        button.data(options);
-                    }
-                    button.appendTo("body");
+                    $('<button type="button" id="' + id + '" class="btn btn-danger hidden faupload" />').appendTo("body");
                     $("#" + id).data("upload-complete", function (files) {
                         Layer.close(index);
                         Upload.list[id].removeAllFiles(true);

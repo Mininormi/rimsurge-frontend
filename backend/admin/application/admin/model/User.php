@@ -106,9 +106,9 @@ class User extends Model
         return $value ? $value : null;
     }
 
-    public function getGroupAttr($value, $data)
+    public function group()
     {
-        return UserGroup::get($data['group_id']);
+        return $this->belongsTo('UserGroup', 'group_id', 'id', [], 'LEFT')->setEagerlyType(0);
     }
 
 }

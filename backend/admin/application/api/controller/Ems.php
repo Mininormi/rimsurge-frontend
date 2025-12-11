@@ -30,7 +30,6 @@ class Ems extends Api
     public function send()
     {
         $email = $this->request->post("email");
-        $captcha = $this->request->post("captcha");
         $event = $this->request->post("event");
         $event = $event ? $event : 'register';
 

@@ -164,7 +164,6 @@ html.ios-fix, html.ios-fix body {
     width: 100%;
     margin-bottom: 0;
     padding: 10px;
-    z-index: 99;
 }
 
 table.table-template {
@@ -1689,24 +1688,6 @@ table.table-nowrap {
 
         &:hover {
             color: #ccc;
-        }
-    }
-}
-
-.btn-commonsearch {
-    transition: all 0.3s ease;
-
-    &.searching {
-        &, &:focus {
-            background: @component-active-bg;
-            color: @component-active-color;
-            border-color: @component-active-bg;
-        }
-
-        &:hover, &:active, &:active:hover {
-            background: darken(@component-active-bg, 5%);
-            color: @component-active-color;
-            outline: none;
         }
     }
 }

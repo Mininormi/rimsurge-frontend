@@ -813,11 +813,12 @@ footer.footer .copyright a:hover {
 }
 .login-section .logon-tab {
   margin: -15px -15px 0 -15px;
-  display: flex;
 }
 .login-section .logon-tab > a {
+  display: block;
   padding: 20px;
-  width: 100%;
+  float: left;
+  width: 50%;
   font-size: 16px;
   text-align: center;
   color: #616161;
@@ -864,10 +865,6 @@ footer.footer .copyright a:hover {
 .login-section .n-bootstrap .n-right .msg-wrap,
 .form-section .n-bootstrap .n-right .msg-wrap {
   position: relative;
-}
-.login-section .n-bootstrap .n-right[for="agreement"],
-.form-section .n-bootstrap .n-right[for="agreement"] {
-  top: -12px;
 }
 main.content {
   width: 100%;

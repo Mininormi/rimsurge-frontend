@@ -1,6 +1,5 @@
 <style>
     .bootstrap-table tr td .text-muted {color:#888;}
-    .bootstrap-table tr td .fa.fa-caret-right {width: 8px;text-align: center;}
 </style>
 <div class="panel panel-default panel-intro">
     {:build_heading()}
@@ -26,7 +25,6 @@
                     <table id="table" class="table table-bordered table-hover"
                            data-operate-edit="{:$auth->check('auth/rule/edit')}"
                            data-operate-del="{:$auth->check('auth/rule/del')}"
-                           data-operate-dragsort="{:$auth->check('auth/rule/dragsort')}"
                            width="100%">
                     </table>
                 </div>

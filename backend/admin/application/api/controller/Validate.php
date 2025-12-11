@@ -17,9 +17,6 @@ class Validate extends Api
     public function _initialize()
     {
         parent::_initialize();
-        if (!$this->request->isPost()) {
-            $this->error(__('请求错误'));
-        }
     }
 
     /**

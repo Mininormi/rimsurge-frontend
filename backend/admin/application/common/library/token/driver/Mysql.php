@@ -16,6 +16,7 @@ class Mysql extends Driver
      */
     protected $options = [
         'table'      => 'user_token',
+        'expire'     => 2592000,
         'connection' => [],
     ];
 

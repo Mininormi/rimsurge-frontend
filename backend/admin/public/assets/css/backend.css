@@ -376,7 +376,6 @@ html.ios-fix body .tab-pane {
   width: 100%;
   margin-bottom: 0;
   padding: 10px;
-  z-index: 99;
 }
 table.table-template {
   overflow: hidden;
@@ -1642,21 +1641,5 @@ table.table-nowrap thead > tr > th {
 }
 .autocontent .autocontent-caret:hover {
   color: #ccc;
-}
-.btn-commonsearch {
-  transition: all 0.3s ease;
-}
-.btn-commonsearch.searching,
-.btn-commonsearch.searching:focus {
-  background: #444c69;
-  color: #fff;
-  border-color: #444c69;
-}
-.btn-commonsearch.searching:hover,
-.btn-commonsearch.searching:active,
-.btn-commonsearch.searching:active:hover {
-  background: #3a415a;
-  color: #fff;
-  outline: none;
 }
 /*# sourceMappingURL=backend.css.map */

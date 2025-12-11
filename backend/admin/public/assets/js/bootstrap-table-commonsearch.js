@@ -215,21 +215,6 @@
             op[name] = sym;
             filter[name] = value;
         });
-        if (that.options.searchCountTips || that.options.searchBtnBg) {
-            var count = 0;
-            $.each(filter, function (key, value) {
-                if ((value === '' || value == null || ($.isArray(value) && value.length === 0))) {
-                    return true;
-                }
-                count++;
-            });
-            if (that.options.searchCountTips) {
-                that.$toolbar.find(".btn-commonsearch > span").text(count).toggleClass("hidden", count === 0);
-            }
-            if (that.options.searchBtnBg) {
-                that.$toolbar.find(".btn-commonsearch").toggleClass("searching", count !== 0);
-            }
-        }
         return {op: op, filter: filter};
     };
 
@@ -259,8 +244,6 @@
         actionForm: "",
         searchFormTemplate: "",
         searchFormVisible: true,
-        searchBtnBg: true,
-        searchCountTips: false,
         searchClass: 'searchit',
         showSearch: true,
         renderDefault: true,
@@ -328,11 +311,8 @@
             html = [];
         if (that.options.showSearch) {
             html.push(sprintf('<div class="columns-%s pull-%s" style="margin-top:10px;margin-bottom:10px;">', this.options.buttonsAlign, this.options.buttonsAlign));
-            html.push(sprintf('<button class="btn btn-default btn-commonsearch %s' + '" type="button" name="commonSearch" title="%s">', that.options.iconSize === undefined ? '' : ' btn-' + that.options.iconSize, that.options.formatCommonSearch()));
-            if (that.options.searchCountTips) {
-                html.push(sprintf('<span class="label label-danger hidden">0</span>'));
-            }
-            html.push(sprintf('<i class="%s %s"></i>', that.options.iconsPrefix, that.options.icons.commonSearchIcon));
+            html.push(sprintf('<button class="btn btn-default%s' + '" type="button" name="commonSearch" title="%s">', that.options.iconSize === undefined ? '' : ' btn-' + that.options.iconSize, that.options.formatCommonSearch()));
+            html.push(sprintf('<i class="%s %s"></i>', that.options.iconsPrefix, that.options.icons.commonSearchIcon))
             html.push('</button></div>');
         }
         if (that.$toolbar.find(".pull-right").length > 0) {

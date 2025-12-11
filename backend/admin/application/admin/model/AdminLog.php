@@ -20,8 +20,7 @@ class AdminLog extends Model
     protected static $content = '';
     //忽略的链接正则列表
     protected static $ignoreRegex = [
-        '/^(.*)\/(selectpage|index|get_table_list|get_fields_list)$/i',
-        '/^auth\/group\/roletree$/i',
+        '/^(.*)\/(selectpage|index)$/i',
     ];
 
     public static function setTitle($title)
@@ -67,14 +66,17 @@ class AdminLog extends Model
         $content = $content ?: self::$content;
         if (!$content) {
             $content = request()->param('') ?: file_get_contents("php://input");
-            $contentLength = request()->server('CONTENT_LENGTH');
-            if (is_string($content) && $contentLength && strlen($content) < $contentLength) {
-                $content = '[Request Data Truncated]';
-            }
             $content = self::getPureContent($content);
         }
         $title = $title ?: self::$title;
-        $title = $title ?: implode(' / ', array_column(Auth::instance()->getBreadcrumb($path), 'title'));
+        if (!$title) {
+            $title = [];
+            $breadcrumb = Auth::instance()->getBreadcrumb($path);
+            foreach ($breadcrumb as $k => $v) {
+                $title[] = $v['title'];
+            }
+            $title = implode(' / ', $title);
+        }
         self::create([
             'title'     => $title,
             'content'   => !is_scalar($content) ? json_encode($content, JSON_UNESCAPED_UNICODE) : $content,

@@ -493,20 +493,20 @@ class Crud extends Command
                     //关联模式
                     'relationFields'        => isset($relationFields[$index]) ? explode(',', $relationFields[$index]) : [],
                     //关联模式
-                    'relationMode'          => $relationMode[$index] ?? 'belongsto',
+                    'relationMode'          => isset($relationMode[$index]) ? $relationMode[$index] : 'belongsto',
                     //关联模型控制器
-                    'relationController'    => $relationController[$index] ?? '',
+                    'relationController'    => isset($relationController[$index]) ? $relationController[$index] : '',
                     //关联表外键
-                    'relationForeignKey'    => $relationForeignKey[$index] ?? '',
+                    'relationForeignKey'    => isset($relationForeignKey[$index]) ? $relationForeignKey[$index] : '',
                     //关联表主键
-                    'relationPrimaryKey'    => $relationPrimaryKey[$index] ?? '',
+                    'relationPrimaryKey'    => isset($relationPrimaryKey[$index]) ? $relationPrimaryKey[$index] : '',
                 ];
             }
         }
 
         //根据表名匹配对应的Fontawesome图标
-        $iconPath = ROOT_PATH . str_replace('/', DS, '/public/assets/libs/font-awesome/css/font-awesome.css');
-        $iconName = is_file($iconPath) && stripos(file_get_contents($iconPath), '.fa-' . $table . ' {') ? 'fa fa-' . $table : 'fa fa-circle-o';
+        $iconPath = ROOT_PATH . str_replace('/', DS, '/public/assets/libs/font-awesome/less/variables.less');
+        $iconName = is_file($iconPath) && stripos(file_get_contents($iconPath), '@fa-var-' . $table . ':') ? 'fa fa-' . $table : 'fa fa-circle-o';
 
         //控制器
         list($controllerNamespace, $controllerName, $controllerFile, $controllerArr) = $this->getControllerData($moduleName, $controller, $table);
@@ -711,7 +711,6 @@ class Crud extends Command
             $getAttrArr = [];
             $getEnumArr = [];
             $appendAttrList = [];
-            $typeDefineList = [];
             $controllerAssignList = [];
             $headingHtml = '{:build_heading()}';
             $controllerImport = '';
@@ -744,17 +743,10 @@ class Crud extends Command
                 if ($v['COLUMN_COMMENT'] != '') {
                     $langList[] = $this->getLangItem($field, $v['COLUMN_COMMENT']);
                 }
-
-                $inputType = $this->getFieldType($v);
-
-                // 强制类型转换
-                if ($inputType === 'number' && $v['DATA_TYPE'] == 'bigint') {
-                    $typeDefineList[] = <<<EOD
-        '{$field}' => 'string'
-EOD;
-                }
+                $inputType = '';
                 //保留字段不能修改和添加
                 if ($v['COLUMN_KEY'] != 'PRI' && !in_array($field, $this->reservedField) && !in_array($field, $this->ignoreFields)) {
+                    $inputType = $this->getFieldType($v);
 
                     // 如果是number类型时增加一个步长
                     $step = $inputType == 'number' && $v['NUMERIC_SCALE'] > 0 ? "0." . str_repeat(0, $v['NUMERIC_SCALE'] - 1) . "1" : 0;
@@ -763,13 +755,6 @@ EOD;
                     $cssClassArr = ['form-control'];
                     $fieldName = "row[{$field}]";
                     $defaultValue = $v['COLUMN_DEFAULT'];
-
-                    $defaultValue = $defaultValue === 'NULL' ? '' : (string)$defaultValue;
-                    if (preg_match("/^'.*'$/", $defaultValue) && strlen($defaultValue) >= 2) {
-                        // 去掉首尾单引号
-                        $defaultValue = substr($defaultValue, 1, -1);
-                    }
-
                     $editValue = "{\$row.{$field}|htmlentities}";
                     // 如果默认值非null,则是一个必选项
                     if ($v['IS_NULLABLE'] == 'NO') {
@@ -1150,7 +1135,6 @@ EOD;
                 'recyclebinHtml'          => $recyclebinHtml,
                 'visibleFieldList'        => $fields ? "\$row->visible(['" . implode("','", array_filter(in_array($priKey, explode(',', $fields)) ? explode(',', $fields) : explode(',', $priKey . ',' . $fields))) . "']);" : '',
                 'appendAttrList'          => implode(",\n", $appendAttrList),
-                'typeDefineList'          => implode(",\n", $typeDefineList),
                 'getEnumList'             => implode("\n\n", $getEnumArr),
                 'getAttrList'             => implode("\n\n", $getAttrArr),
                 'setAttrList'             => implode("\n\n", $setAttrArr),
@@ -1251,7 +1235,7 @@ EOD;
         $output->info("Build Successed");
     }
 
-    protected function getEnum(&$getEnum, &$controllerAssignList, $field, $itemArr = [], $inputType = '')
+    protected function getEnum(&$getEnum, &$controllerAssignList, $field, $itemArr = '', $inputType = '')
     {
         if (!in_array($inputType, ['datetime', 'select', 'multiple', 'checkbox', 'radio'])) {
             return;
@@ -1289,7 +1273,6 @@ EOD;
             return;
         }
         $attrField = ucfirst($this->getCamelizeName($field));
-        $return = '';
         if ($inputType == 'datetime') {
             $return = <<<EOD
 return \$value === '' ? null : (\$value && !is_numeric(\$value) ? strtotime(\$value) : \$value);
@@ -1329,7 +1312,6 @@ EOD;
                     $iterator = new \FilesystemIterator($parentDir);
                     $isDirEmpty = !$iterator->valid();
                     if ($isDirEmpty) {
-                        unset($iterator);
                         rmdir($parentDir);
                         $parentDir = dirname($parentDir);
                     } else {
@@ -1571,7 +1553,6 @@ EOD;
                 $valArr = explode('=', $v);
                 if (count($valArr) == 2) {
                     list($key, $value) = $valArr;
-                    $key = trim($key);
                     $itemArr[$key] = $field . ' ' . $key;
                 }
             }

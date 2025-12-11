@@ -348,7 +348,10 @@ class Auth extends \fast\Auth
             $obj = Tree::instance()->init($childrenList, 'pid')->getTreeArray($v['pid']);
             $objList = array_merge($objList, Tree::instance()->getTreeList($obj));
         }
-        $childrenGroupIds = array_column($objList, 'id');
+        $childrenGroupIds = [];
+        foreach ($objList as $k => $v) {
+            $childrenGroupIds[] = $v['id'];
+        }
         if (!$withself) {
             $childrenGroupIds = array_diff($childrenGroupIds, $groupIds);
         }
@@ -519,7 +522,7 @@ class Auth extends \fast\Auth
                 );
                 $current = in_array($item['id'], $selectParentIds);
                 $url = $childList ? 'javascript:;' : $item['url'];
-                $addtabs = $childList || !$url || stripos($url, '/') === 0 || preg_match('/([?&])ref=/', $url) ? "" : (stripos($url, "?") !== false ? "&" : "?") . "ref=" . ($item['menutype'] ?: 'addtabs');
+                $addtabs = $childList || !$url ? "" : (stripos($url, "?") !== false ? "&" : "?") . "ref=" . ($item['menutype'] ? $item['menutype'] : 'addtabs');
                 $childList = str_replace(
                     '" pid="' . $item['id'] . '"',
                     ' ' . ($current ? '' : 'hidden') . '" pid="' . $item['id'] . '"',

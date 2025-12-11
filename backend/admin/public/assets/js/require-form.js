@@ -106,7 +106,7 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                         $('.selectpicker', form).selectpicker();
                         $(form).on("reset", function () {
                             setTimeout(function () {
-                                $('.selectpicker', form).selectpicker('refresh').trigger("change");
+                                $('.selectpicker').selectpicker('refresh').trigger("change");
                             }, 1);
                         });
                     });
@@ -135,13 +135,8 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                         setTimeout(function () {
                             $(".selectpage", form).each(function () {
                                 var selectpage = $(this).data("selectPageObject");
-                                if ($(this).val()) {
-                                    selectpage.elem.hidden.val($(this).val());
-                                    $(this).selectPageRefresh();
-                                } else {
-                                    $(this).selectPageClear();
-                                }
-                                selectpage.hideResults(selectpage);
+                                selectpage.elem.hidden.val($(this).val());
+                                $(this).selectPageRefresh();
                             });
                         }, 1);
                     });
@@ -164,7 +159,7 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                     require(['citypicker'], function () {
                         $(form).on("reset", function () {
                             setTimeout(function () {
-                                $("[data-toggle='city-picker']", form).citypicker('refresh');
+                                $("[data-toggle='city-picker']").citypicker('refresh');
                             }, 1);
                         });
                     });
@@ -284,7 +279,7 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                                     var nums = value === '' ? 0 : value.split(/\,/).length;
                                     var files = data.url !== "" ? data.url.split(/\,/) : [];
                                     $.each(files, function (i, j) {
-                                        var url = Config.upload.fullmode ? Fast.api.cdnurl(j, true) : j;
+                                        var url = Config.upload.fullmode ? Fast.api.cdnurl(j) : j;
                                         urlArr.push(url);
                                     });
                                     if (maxcount > 0) {
@@ -297,7 +292,7 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                                     var result = urlArr.join(",");
                                     inputObj.val(result).trigger("change").trigger("validate");
                                 } else if (input_id) {
-                                    var url = Config.upload.fullmode ? Fast.api.cdnurl(data.url, true) : data.url;
+                                    var url = Config.upload.fullmode ? Fast.api.cdnurl(data.url) : data.url;
                                     $("#" + input_id).val(url).trigger("change").trigger("validate");
                                 }
 
@@ -339,7 +334,7 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                             var keys = Object.keys(Object.values(data)[0] || {});
 
                             var isassociative = !usearray && keys.indexOf("value") > -1 && (keys.length === 1 || (keys.length === 2 && keys.indexOf("key") > -1));
-                            if (isassociative && keys.length === 2) {
+                            if(isassociative && keys.length ===2){
                                 result = {};
                             }
 
@@ -518,10 +513,10 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
             tagsinput: function (form) {
                 if ($("[data-role='tagsinput']", form).length > 0) {
                     require(['tagsinput', 'autocomplete'], function () {
-                        $("[data-role='tagsinput']", form).tagsinput();
+                        $("[data-role='tagsinput']").tagsinput();
                         form.on("reset", function () {
                             setTimeout(function () {
-                                $("[data-role='tagsinput']", form).tagsinput('reset');
+                                $("[data-role='tagsinput']").tagsinput('reset');
                             }, 0);
                         });
                     });
@@ -545,7 +540,7 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                 var checkCondition = function (condition) {
                     var conditionArr = condition.split(/&&/);
                     var success = 0;
-                    var baseregex = /^([a-z0-9\_\[\]]+)([>|<|=|\!]=?)(.*)$/i, strregex = /^('|")(.*)('|")$/, regregex = /^regex:(.*)$/;
+                    var baseregex = /^([a-z0-9\_]+)([>|<|=|\!]=?)(.*)$/i, strregex = /^('|")(.*)('|")$/, regregex = /^regex:(.*)$/;
                     // @formatter:off
                     var operator_result = {
                         '>': function (a, b) {
@@ -600,15 +595,7 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                                 operator = 'regex';
                                 value = regmatches[1];
                             }
-                            var chkname;
-                            if (name.match(/[\[\]]+/)) {
-                                chkname = name;
-                            } else {
-                                chkname = "row[" + name + "]";
-                                if (typeof dataObj[chkname] === 'undefined' && typeof dataObj[name] !== 'undefined') {
-                                    chkname = name;
-                                }
-                            }
+                            var chkname = "row[" + name + "]";
                             if (typeof dataObj[chkname] === 'undefined') {
                                 return false;
                             }
@@ -687,9 +674,7 @@ define(['jquery', 'bootstrap', 'upload', 'validator', 'validator-lang'], functio
                 Fast.api.ajax({
                     type: type,
                     url: url,
-                    data: form.find(':input') // 找到所有可序列化的元素
-                        .not('.fieldlist[data-ignoreorigin="true"] [fieldlist-item] *') // 排除掉 fieldlist 中的元素
-                        .serialize() + (Object.keys(params).length > 0 ? '&' + $.param(params) : ''),
+                    data: form.serialize() + (Object.keys(params).length > 0 ? '&' + $.param(params) : ''),
                     dataType: 'json',
                     complete: function (xhr) {
                         var token = xhr.getResponseHeader('__token__');

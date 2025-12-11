@@ -261,9 +261,6 @@ INSERT INTO `fa_auth_rule` VALUES (81, 'file', 79, 'user/rule/del', 'Del', 'fa f
 INSERT INTO `fa_auth_rule` VALUES (82, 'file', 79, 'user/rule/add', 'Add', 'fa fa-circle-o', '', '', '', 0, NULL, '', '', '', 1491635035, 1491635035, 0, 'normal');
 INSERT INTO `fa_auth_rule` VALUES (83, 'file', 79, 'user/rule/edit', 'Edit', 'fa fa-circle-o', '', '', '', 0, NULL, '', '', '', 1491635035, 1491635035, 0, 'normal');
 INSERT INTO `fa_auth_rule` VALUES (84, 'file', 79, 'user/rule/multi', 'Multi', 'fa fa-circle-o', '', '', '', 0, NULL, '', '', '', 1491635035, 1491635035, 0, 'normal');
-INSERT INTO `fa_auth_rule` VALUES (85, 'file', 3, 'category/dragsort', 'Dragsort', 'fa fa-circle-o', '', '', '', 0, NULL, '', '', '', 1491635035, 1491635035, 0, 'normal');
-INSERT INTO `fa_auth_rule` VALUES (86, 'file', 12, 'auth/rule/dragsort', 'Dragsort', 'fa fa-circle-o', '', '', '', 0, NULL, '', '', '', 1491635035, 1491635035, 0, 'normal');
-INSERT INTO `fa_auth_rule` VALUES (87, 'file', 79, 'user/rule/dragsort', 'Dragsort', 'fa fa-circle-o', '', '', '', 0, NULL, '', '', '', 1491635035, 1491635035, 0, 'normal');
 COMMIT;
 
 -- ----------------------------
@@ -473,7 +470,7 @@ CREATE TABLE `fa_user` (
 -- Records of fa_user
 -- ----------------------------
 BEGIN;
-INSERT INTO `fa_user` VALUES (1, 1, 'admin', 'admin', '', '', 'admin@example.com', '13000000000', '', 0, 0, '2017-04-08', '', 0, 0, 1, 1, 1491635035, 1491635035, '127.0.0.1', 0, 1491635035,'127.0.0.1', 1491635035, 0, 1491635035, '', 'normal','');
+INSERT INTO `fa_user` VALUES (1, 1, 'admin', 'admin', '', '', 'admin@163.com', '13000000000', '', 0, 0, '2017-04-08', '', 0, 0, 1, 1, 1491635035, 1491635035, '127.0.0.1', 0, 1491635035,'127.0.0.1', 1491635035, 0, 1491635035, '', 'normal','');
 COMMIT;
 
 -- ----------------------------

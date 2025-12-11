@@ -25,10 +25,6 @@ class User extends Api
             $this->error(__('User center already closed'));
         }
 
-        if (!$this->request->isPost() && $this->request->action() !== 'index') {
-            $this->error(__('请求错误'));
-        }
-
     }
 
     /**
@@ -72,7 +68,7 @@ class User extends Api
     public function mobilelogin()
     {
         $mobile = $this->request->post('mobile');
-        $captcha = $this->request->post('smscode', $this->request->post('captcha'));
+        $captcha = $this->request->post('captcha');
         if (!$mobile || !$captcha) {
             $this->error(__('Invalid parameters'));
         }
@@ -90,8 +86,7 @@ class User extends Api
             //如果已经有账号则直接登录
             $ret = $this->auth->direct($user->id);
         } else {
-            $ret = $this->auth->register('', Random::alnum(16), '', $mobile, []);
-            $this->auth->getUser()->save(['verification' => ['email' => 0, 'mobile' => 1]]);
+            $ret = $this->auth->register($mobile, Random::alnum(), '', $mobile, []);
         }
         if ($ret) {
             Sms::flush($mobile, 'mobilelogin');
@@ -114,10 +109,6 @@ class User extends Api
      */
     public function register()
     {
-        if (!config('fastadmin.user_register')) {
-            $this->error(__('User register already closed'));
-        }
-
         $username = $this->request->post('username');
         $password = $this->request->post('password');
         $email = $this->request->post('email');
@@ -132,16 +123,12 @@ class User extends Api
         if ($mobile && !Validate::regex($mobile, "^1\d{10}$")) {
             $this->error(__('Mobile is incorrect'));
         }
-        if (Validate::regex($username, '/^1\d{10}$/')) {
-            $this->error(__('Username can not be mobile'));
-        }
         $ret = Sms::check($mobile, $code, 'register');
         if (!$ret) {
             $this->error(__('Captcha is incorrect'));
         }
         $ret = $this->auth->register($username, $password, $email, $mobile, []);
         if ($ret) {
-            $this->auth->getUser()->save(['verification' => ['email' => 0, 'mobile' => 1]]);
             $data = ['userinfo' => $this->auth->getUserinfo()];
             $this->success(__('Sign up successful'), $data);
         } else {
@@ -179,14 +166,14 @@ class User extends Api
         $bio = $this->request->post('bio');
         $avatar = $this->request->post('avatar', '', 'trim,strip_tags,htmlspecialchars');
         if ($username) {
-            $exists = \app\common\model\User::where('username', $username)->where('id', '<>', $user->id)->find();
+            $exists = \app\common\model\User::where('username', $username)->where('id', '<>', $this->auth->id)->find();
             if ($exists) {
                 $this->error(__('Username already exists'));
             }
             $user->username = $username;
         }
         if ($nickname) {
-            $exists = \app\common\model\User::where('nickname', $nickname)->where('id', '<>', $user->id)->find();
+            $exists = \app\common\model\User::where('nickname', $nickname)->where('id', '<>', $this->auth->id)->find();
             if ($exists) {
                 $this->error(__('Nickname already exists'));
             }

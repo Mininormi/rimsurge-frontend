@@ -103,11 +103,6 @@ class Backend extends Controller
     protected $excludeFields = "";
 
     /**
-     * 排序字段
-     */
-    protected $dragsortFields = 'weigh';
-
-    /**
      * 导入文件首行类型
      * 支持comment/name
      * 表示注释或字段名
@@ -582,10 +577,7 @@ class Backend extends Controller
                     $result = array_intersect_key(($item instanceof Model ? $item->toArray() : (array)$item), array_flip($fields));
                 }
                 $result['pid'] = isset($item['pid']) ? $item['pid'] : (isset($item['parent_id']) ? $item['parent_id'] : 0);
-                // 修改为安全的htmlentities调用，兼容php8+版本
-                $result = array_map(function($value) {
-                    return $value === null ? '' : htmlentities((string)$value);
-                }, $result);
+                $result = array_map("htmlentities", $result);
                 $list[] = $result;
             }
             if ($istree && !$primaryvalue) {

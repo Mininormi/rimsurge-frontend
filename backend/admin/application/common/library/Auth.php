@@ -26,7 +26,7 @@ class Auth
     //默认配置
     protected $config = [];
     protected $options = [];
-    protected $allowFields = [];
+    protected $allowFields = ['id', 'username', 'nickname', 'mobile', 'avatar', 'score'];
 
     public function __construct($options = [])
     {
@@ -34,9 +34,6 @@ class Auth
             $this->config = array_merge($this->config, $config);
         }
         $this->options = array_merge($this->config, $options);
-
-        $this->keeptime = config('fastadmin.user_login_keeptime') ?? 259200;
-        $this->allowFields = config('fastadmin.user_allow_fields') ?? ['id', 'username', 'nickname', 'mobile', 'avatar', 'score'];
     }
 
     /**
@@ -134,65 +131,60 @@ class Auth
      * @param array  $extend   扩展参数
      * @return boolean
      */
-    public function register($username = '', $password = '', $email = '', $mobile = '', $extend = [])
+    public function register($username, $password, $email = '', $mobile = '', $extend = [])
     {
+        // 检测用户名、昵称、邮箱、手机号是否存在
+        if (User::getByUsername($username)) {
+            $this->setError('Username already exist');
+            return false;
+        }
+        if (User::getByNickname($username)) {
+            $this->setError('Nickname already exist');
+            return false;
+        }
+        if ($email && User::getByEmail($email)) {
+            $this->setError('Email already exist');
+            return false;
+        }
+        if ($mobile && User::getByMobile($mobile)) {
+            $this->setError('Mobile already exist');
+            return false;
+        }
+
+        $ip = request()->ip();
+        $time = time();
+
+        $data = [
+            'username' => $username,
+            'password' => $password,
+            'email'    => $email,
+            'mobile'   => $mobile,
+            'level'    => 1,
+            'score'    => 0,
+            'avatar'   => '',
+        ];
+        $params = array_merge($data, [
+            'nickname'  => preg_match("/^1[3-9]{1}\d{9}$/", $username) ? substr_replace($username, '****', 3, 4) : $username,
+            'salt'      => Random::alnum(),
+            'jointime'  => $time,
+            'joinip'    => $ip,
+            'logintime' => $time,
+            'loginip'   => $ip,
+            'prevtime'  => $time,
+            'status'    => 'normal'
+        ]);
+        $params['password'] = $this->getEncryptPassword($password, $params['salt']);
+        $params = array_merge($params, $extend);
+
         //账号注册时需要开启事务,避免出现垃圾数据
         Db::startTrans();
         try {
-            $username = $username ?: Random::username();
-            $password = $password ?: Random::alnum(16);
-            $nickname = $extend['nickname'] ?? '用户' . mb_substr($mobile ?: strtoupper(Random::alnum(4)), -4);
-
-            // 检测用户名
-            if (User::checkExists('username', $username)) {
-                $this->setError('Username already exist');
-                Db::rollback();
-                return false;
-            }
-            // 检测邮箱
-            if ($email && User::checkExists('email', $email)) {
-                $this->setError('Email already exist');
-                Db::rollback();
-                return false;
-            }
-            // 检测手机号
-            if ($mobile && User::checkExists('mobile', $mobile)) {
-                $this->setError('Mobile already exist');
-                Db::rollback();
-                return false;
-            }
-
-            $ip = request()->ip();
-            $time = time();
-
-            $data = [
-                'username' => $username,
-                'password' => $password,
-                'email'    => $email,
-                'mobile'   => $mobile,
-                'level'    => 1,
-                'score'    => 0,
-                'avatar'   => '',
-            ];
-            $params = array_merge($data, [
-                'nickname'  => $nickname,
-                'salt'      => Random::alnum(),
-                'jointime'  => $time,
-                'joinip'    => $ip,
-                'logintime' => $time,
-                'loginip'   => $ip,
-                'prevtime'  => $time,
-                'status'    => 'normal'
-            ]);
-            $params['password'] = $this->getEncryptPassword($password, $params['salt']);
-            $params = array_merge($params, $extend);
-
             $user = User::create($params, true);
 
             $this->_user = User::get($user->id);
 
             //设置Token
-            $this->_token = Random::uuid($user->id);
+            $this->_token = Random::uuid();
             Token::set($this->_token, $user->id, $this->keeptime);
 
             //设置登录状态
@@ -333,7 +325,7 @@ class Auth
 
                 $this->_user = $user;
 
-                $this->_token = Random::uuid($user->id);
+                $this->_token = Random::uuid();
                 Token::set($this->_token, $user->id, $this->keeptime);
 
                 $this->_logined = true;
@@ -369,7 +361,7 @@ class Auth
         foreach ($ruleList as $k => $v) {
             $rules[] = $v['name'];
         }
-        $url = ($module ?: request()->module()) . '/' . (is_null($path) ? $this->getRequestUri() : $path);
+        $url = ($module ? $module : request()->module()) . '/' . (is_null($path) ? $this->getRequestUri() : $path);
         $url = strtolower(str_replace('.', '/', $url));
         return in_array($url, $rules);
     }
