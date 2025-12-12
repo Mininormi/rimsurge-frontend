@@ -43,6 +43,7 @@ echo 前台访问: http://localhost:8080
 echo 后台访问: http://localhost:8080/admin.php
 echo 安装页面: http://localhost:8080/install.php
 echo 前端访问: http://localhost:3000
+echo 数据库管理: http://localhost:8081
 echo.
 echo 数据库连接信息：
 echo   主机: mysql (容器内) 或 127.0.0.1 (宿主机)

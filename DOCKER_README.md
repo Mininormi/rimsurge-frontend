@@ -44,16 +44,33 @@ docker-compose exec php chmod -R 755 /var/www/html/runtime
 - **FastAdmin 后台**：http://localhost:8080/admin.php
 - **FastAdmin 安装页面**：http://localhost:8080/install.php（首次访问）
 - **Next.js 前端**：http://localhost:3000
+- **Adminer 数据库管理**：http://localhost:8081
 
 ## 数据库配置
+
+### FastAdmin 数据库连接信息
 
 在 FastAdmin 安装过程中，使用以下数据库连接信息：
 
 - **数据库主机**: `mysql`（容器内）或 `127.0.0.1`（宿主机）
 - **数据库端口**: `3306`
 - **数据库名**: `fastadmin`（或 `.env` 中配置的 `MYSQL_DATABASE`）
-- **用户名**: `fastadmin`（或 `.env` 中配置的 `MYSQL_USER`）
+- **用户名**: `fastadmin`（或 `.env` 中配置的 `MYSQL_PASSWORD`）
 - **密码**: `fastadmin123`（或 `.env` 中配置的 `MYSQL_PASSWORD`）
+
+### Adminer 登录信息
+
+访问 http://localhost:8081 后，使用以下信息登录：
+
+- **系统**: MySQL
+- **服务器**: `mysql`（Docker 服务名）
+- **用户名**: `root` 或 `fastadmin`
+- **密码**: `root123456` 或 `fastadmin123`（根据 `.env` 配置）
+- **数据库**: `fastadmin`（或你创建的数据库名）
+
+**注意**: 
+- 使用 `root` 用户登录拥有所有权限（增删改查、表结构管理等）
+- 使用 `fastadmin` 用户登录权限受该用户权限限制
 
 ## 常用命令
 
@@ -78,6 +95,9 @@ docker-compose logs mysql
 
 # 查看前端服务日志
 docker-compose logs frontend
+
+# 查看 Adminer 服务日志
+docker-compose logs adminer
 ```
 
 ### 进入容器
@@ -137,6 +157,12 @@ docker-compose build --no-cache
 - 工作目录: `/app`
 - 开发模式: 支持热重载（Hot Reload）
 - 环境: Node.js 20 (Alpine)
+
+### Adminer 数据库管理
+- 容器名: `fastadmin_adminer`
+- 端口映射: `8081:8080`
+- 访问地址: http://localhost:8081
+- 功能: 完整的数据库管理工具（增删改查、表结构管理等）
 
 ## 故障排查
 

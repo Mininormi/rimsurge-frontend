@@ -76,6 +76,18 @@ services:
     stdin_open: true
     tty: true
 
+  adminer:
+    image: adminer
+    container_name: fastadmin_adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - fastadmin_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
 networks:
   fastadmin_network:
     driver: bridge
