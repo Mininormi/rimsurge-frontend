@@ -41,8 +41,7 @@ docker-compose exec php chmod -R 755 /var/www/html/runtime
 ### 5. 访问应用
 
 - **FastAdmin 前台**：http://localhost:8080
-- **FastAdmin 后台**：http://localhost:8080/admin.php
-- **FastAdmin 安装页面**：http://localhost:8080/install.php（首次访问）
+- **FastAdmin 后台**：http://localhost:8080/zvElCkbXuZ.php
 - **Next.js 前端**：http://localhost:3000
 - **Adminer 数据库管理**：http://localhost:8081
 

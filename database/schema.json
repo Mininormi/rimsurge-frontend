@@ -1,0 +1,1449 @@
+{
+    "version": "1.0.2",
+    "generated_at": "2025-12-13 11:19:08",
+    "tables": {
+        "mini_accessory": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "brand_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "品牌ID"
+                },
+                "category": {
+                    "type": "varchar(50)",
+                    "null": false,
+                    "default": null,
+                    "comment": "分类(Center Caps, Lug Nuts等)"
+                },
+                "name": {
+                    "type": "varchar(200)",
+                    "null": false,
+                    "default": null,
+                    "comment": "配件名称"
+                },
+                "slug": {
+                    "type": "varchar(200)",
+                    "null": true,
+                    "comment": "URL别名"
+                },
+                "image": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "主图"
+                },
+                "images": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "图片集"
+                },
+                "description": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "描述"
+                },
+                "compatibility": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "兼容性(JSON格式)"
+                },
+                "sale_price": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "售价"
+                },
+                "original_price": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "原价"
+                },
+                "stock": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "库存"
+                },
+                "status": {
+                    "type": "enum('normal','hidden','soldout')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "brand_id": [
+                    "brand_id"
+                ],
+                "category": [
+                    "category"
+                ],
+                "slug": [
+                    "slug"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "配件表"
+        },
+        "mini_brand": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "name": {
+                    "type": "varchar(100)",
+                    "null": false,
+                    "default": null,
+                    "comment": "品牌名称"
+                },
+                "slug": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "URL别名"
+                },
+                "logo": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "品牌Logo"
+                },
+                "description": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "品牌描述"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "slug": [
+                    "slug"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "品牌表"
+        },
+        "mini_cart": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "user_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "用户ID"
+                },
+                "session_id": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "会话ID(未登录用户)"
+                },
+                "product_spec_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "产品规格ID"
+                },
+                "finish_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "颜色ID"
+                },
+                "quantity": {
+                    "type": "int",
+                    "null": true,
+                    "default": "1",
+                    "comment": "数量"
+                },
+                "price": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "单价"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "user_id": [
+                    "user_id"
+                ],
+                "session_id": [
+                    "session_id"
+                ],
+                "product_spec_id": [
+                    "product_spec_id"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "购物车表"
+        },
+        "mini_customer": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "username": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "用户名"
+                },
+                "email": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "邮箱"
+                },
+                "phone": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "手机"
+                },
+                "password": {
+                    "type": "varchar(32)",
+                    "null": true,
+                    "comment": "密码"
+                },
+                "salt": {
+                    "type": "varchar(30)",
+                    "null": true,
+                    "comment": "密码盐"
+                },
+                "nickname": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "昵称"
+                },
+                "avatar": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "头像"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "email": [
+                    "email"
+                ],
+                "phone": [
+                    "phone"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "客户表"
+        },
+        "mini_gallery": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "product_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "关联产品ID"
+                },
+                "vehicle_make_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "关联车辆品牌ID"
+                },
+                "vehicle_model_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "关联车辆型号ID"
+                },
+                "brand_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "关联轮毂品牌ID"
+                },
+                "title": {
+                    "type": "varchar(200)",
+                    "null": true,
+                    "comment": "标题"
+                },
+                "image": {
+                    "type": "varchar(255)",
+                    "null": false,
+                    "default": null,
+                    "comment": "图片"
+                },
+                "images": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "图片集"
+                },
+                "description": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "描述"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "product_id": [
+                    "product_id"
+                ],
+                "vehicle_make_id": [
+                    "vehicle_make_id"
+                ],
+                "brand_id": [
+                    "brand_id"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "图库表"
+        },
+        "mini_order": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "order_no": {
+                    "type": "varchar(50)",
+                    "null": false,
+                    "default": null,
+                    "comment": "订单号"
+                },
+                "user_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "用户ID"
+                },
+                "subtotal": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "小计"
+                },
+                "shipping": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "运费"
+                },
+                "tax": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "税费"
+                },
+                "total": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "总计"
+                },
+                "shipping_firstname": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "收货人姓"
+                },
+                "shipping_lastname": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "收货人名"
+                },
+                "shipping_email": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "收货邮箱"
+                },
+                "shipping_phone": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "收货电话"
+                },
+                "shipping_address": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "收货地址"
+                },
+                "shipping_city": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "收货城市"
+                },
+                "shipping_province": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "收货省份"
+                },
+                "shipping_postal_code": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "邮编"
+                },
+                "payment_method": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "支付方式"
+                },
+                "payment_status": {
+                    "type": "enum('pending','paid','failed','refunded')",
+                    "null": true,
+                    "default": "pending",
+                    "comment": "支付状态"
+                },
+                "order_status": {
+                    "type": "enum('pending','processing','shipped','delivered','cancelled')",
+                    "null": true,
+                    "default": "pending",
+                    "comment": "订单状态"
+                },
+                "fitment_review": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "适配审核说明"
+                },
+                "fitment_status": {
+                    "type": "enum('pending','approved','rejected')",
+                    "null": true,
+                    "default": "pending",
+                    "comment": "适配审核状态"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "order_no": {
+                    "columns": [
+                        "order_no"
+                    ],
+                    "unique": true
+                },
+                "user_id": [
+                    "user_id"
+                ],
+                "order_status": [
+                    "order_status"
+                ],
+                "payment_status": [
+                    "payment_status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "订单表"
+        },
+        "mini_order_item": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "order_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "订单ID"
+                },
+                "product_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "产品ID"
+                },
+                "product_spec_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "产品规格ID"
+                },
+                "finish_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "颜色ID"
+                },
+                "product_name": {
+                    "type": "varchar(200)",
+                    "null": true,
+                    "comment": "产品名称"
+                },
+                "product_size": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "产品尺寸"
+                },
+                "product_finish": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "产品颜色"
+                },
+                "quantity": {
+                    "type": "int",
+                    "null": true,
+                    "default": "1",
+                    "comment": "数量"
+                },
+                "price": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "单价"
+                },
+                "total": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "小计"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "order_id": [
+                    "order_id"
+                ],
+                "product_id": [
+                    "product_id"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "订单项表"
+        },
+        "mini_product": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "brand_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "品牌ID"
+                },
+                "name": {
+                    "type": "varchar(200)",
+                    "null": false,
+                    "default": null,
+                    "comment": "产品名称"
+                },
+                "slug": {
+                    "type": "varchar(200)",
+                    "null": true,
+                    "comment": "URL别名"
+                },
+                "tagline": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "产品标语"
+                },
+                "image": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "主图"
+                },
+                "images": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "产品图集"
+                },
+                "content": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "产品详情"
+                },
+                "overview": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "产品概述"
+                },
+                "sale_price": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "售价"
+                },
+                "original_price": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "原价"
+                },
+                "price_per": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "default": "Per set of 4 wheels",
+                    "comment": "价格单位"
+                },
+                "stock": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "库存"
+                },
+                "status": {
+                    "type": "enum('normal','hidden','soldout')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "is_featured": {
+                    "type": "tinyint(1)",
+                    "null": true,
+                    "default": "0",
+                    "comment": "是否推荐"
+                },
+                "is_new": {
+                    "type": "tinyint(1)",
+                    "null": true,
+                    "default": "0",
+                    "comment": "是否新品"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "brand_id": [
+                    "brand_id"
+                ],
+                "slug": [
+                    "slug"
+                ],
+                "status": [
+                    "status"
+                ],
+                "is_featured": [
+                    "is_featured"
+                ],
+                "is_new": [
+                    "is_new"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "产品表"
+        },
+        "mini_product_finish": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "product_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "产品ID"
+                },
+                "name": {
+                    "type": "varchar(100)",
+                    "null": false,
+                    "default": null,
+                    "comment": "颜色名称"
+                },
+                "color_code": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "颜色代码"
+                },
+                "image": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "颜色图片"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "product_id": [
+                    "product_id"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "产品颜色表"
+        },
+        "mini_product_spec": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "product_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "产品ID"
+                },
+                "size": {
+                    "type": "varchar(50)",
+                    "null": false,
+                    "default": null,
+                    "comment": "尺寸(如: 18×8.5 +35)"
+                },
+                "diameter": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "直径(如: 18\")"
+                },
+                "width": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "宽度(如: 8.5J)"
+                },
+                "pcd": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "PCD(如: 5×114.3)"
+                },
+                "offset": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "Offset(如: +35)"
+                },
+                "center_bore": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "中心孔(如: 73.1 mm)"
+                },
+                "construction": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "结构(如: Forged, 1-piece)"
+                },
+                "origin": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "产地"
+                },
+                "weight": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "重量"
+                },
+                "load_rating": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "载重"
+                },
+                "winter_use": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "冬季使用说明"
+                },
+                "price": {
+                    "type": "decimal(10,2)",
+                    "null": true,
+                    "default": "0.00",
+                    "comment": "此规格价格"
+                },
+                "stock": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "此规格库存"
+                },
+                "status": {
+                    "type": "enum('normal','hidden','soldout')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "product_id": [
+                    "product_id"
+                ],
+                "pcd": [
+                    "pcd"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "产品规格表"
+        },
+        "mini_product_tag": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "name": {
+                    "type": "varchar(50)",
+                    "null": false,
+                    "default": null,
+                    "comment": "标签名称"
+                },
+                "color": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "标签颜色"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "产品标签表"
+        },
+        "mini_product_tag_relation": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "product_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "产品ID"
+                },
+                "tag_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "标签ID"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "product_id": [
+                    "product_id"
+                ],
+                "tag_id": [
+                    "tag_id"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "产品标签关联表"
+        },
+        "mini_vehicle_engine": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "generation_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "代际ID"
+                },
+                "name": {
+                    "type": "varchar(100)",
+                    "null": false,
+                    "default": null,
+                    "comment": "发动机名称(如: 2.0L)"
+                },
+                "code": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "发动机代码"
+                },
+                "displacement": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "排量"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "generation_id": [
+                    "generation_id"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "发动机表"
+        },
+        "mini_vehicle_fitment": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "product_spec_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "产品规格ID"
+                },
+                "vehicle_make_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "车辆品牌ID"
+                },
+                "vehicle_model_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "车辆型号ID"
+                },
+                "vehicle_generation_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "车辆代际ID"
+                },
+                "vehicle_engine_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "发动机ID"
+                },
+                "fitment_note": {
+                    "type": "text",
+                    "null": true,
+                    "comment": "适配说明"
+                },
+                "is_verified": {
+                    "type": "tinyint(1)",
+                    "null": true,
+                    "default": "0",
+                    "comment": "是否已验证"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "product_spec_id": [
+                    "product_spec_id"
+                ],
+                "vehicle_make_id": [
+                    "vehicle_make_id"
+                ],
+                "vehicle_model_id": [
+                    "vehicle_model_id"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "车辆适配关系表"
+        },
+        "mini_vehicle_generation": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "model_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "型号ID"
+                },
+                "name": {
+                    "type": "varchar(100)",
+                    "null": false,
+                    "default": null,
+                    "comment": "代际名称(如: ND)"
+                },
+                "code": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "代际代码"
+                },
+                "year_start": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "开始年份"
+                },
+                "year_end": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "结束年份"
+                },
+                "description": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "描述(如: 2016–present)"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "model_id": [
+                    "model_id"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "车辆代际表"
+        },
+        "mini_vehicle_make": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "name": {
+                    "type": "varchar(50)",
+                    "null": false,
+                    "default": null,
+                    "comment": "品牌名称"
+                },
+                "slug": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "URL别名"
+                },
+                "logo": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "品牌Logo"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "slug": [
+                    "slug"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "车辆品牌表"
+        },
+        "mini_vehicle_model": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "make_id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "comment": "品牌ID"
+                },
+                "name": {
+                    "type": "varchar(100)",
+                    "null": false,
+                    "default": null,
+                    "comment": "型号名称"
+                },
+                "slug": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "URL别名"
+                },
+                "status": {
+                    "type": "enum('normal','hidden')",
+                    "null": true,
+                    "default": "normal",
+                    "comment": "状态"
+                },
+                "weigh": {
+                    "type": "int",
+                    "null": true,
+                    "default": "0",
+                    "comment": "排序"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "make_id": [
+                    "make_id"
+                ],
+                "slug": [
+                    "slug"
+                ],
+                "status": [
+                    "status"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "车辆型号表"
+        }
+    }
+}

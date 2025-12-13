@@ -6,8 +6,11 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: fastadmin_php
+    ports:
+      - "8082:8082"  # 数据库同步工具端口
     volumes:
       - ./backend/admin:/var/www/html
+      - ./database:/var/www/database
     working_dir: /var/www/html
     networks:
       - fastadmin_network
