@@ -44,6 +44,7 @@ docker-compose exec php chmod -R 755 /var/www/html/runtime
 - **FastAdmin 后台**：http://localhost:8080/zvElCkbXuZ.php
 - **Next.js 前端**：http://localhost:3000
 - **Adminer 数据库管理**：http://localhost:8081
+- **数据库同步工具（Web UI）**：http://localhost:8080/database/sync-ui.php
 
 ## 数据库配置
 
@@ -105,6 +106,21 @@ docker-compose exec mysql bash
 docker-compose exec frontend sh
 ```
 
+### 数据库同步工具命令
+```bash
+# 生成 Schema 文件（从数据库导出表结构）
+docker compose exec -T php php /var/www/database/generate-schema.php
+
+# 预览同步 SQL（不执行）
+docker compose exec -T php php /var/www/database/sync.php --dry-run
+
+# 执行同步（实际修改数据库）
+docker compose exec -T php php /var/www/database/sync.php
+
+# 查看同步日志
+docker compose exec php cat /var/www/database/logs/1.0.0/$(date +%m-%d).log
+```
+
 ### 停止服务
 ```bash
 docker-compose stop
@@ -130,12 +146,19 @@ docker-compose build --no-cache
 ### PHP 8.0-FPM
 - 容器名: `fastadmin_php`
 - 工作目录: `/var/www/html`
+- 端口映射: `8082:8082`（数据库同步工具内置服务器，开发环境使用）
+- 目录挂载:
+  - `./backend/admin` → `/var/www/html`（FastAdmin 后端）
+  - `./database` → `/var/www/database`（数据库同步工具）
 - 已安装扩展: pdo_mysql, mysqli, mbstring, exif, pcntl, bcmath, gd, zip, opcache
 
 ### Nginx
 - 容器名: `fastadmin_nginx`
 - 端口映射: `8080:80`
 - 配置文件: `docker/nginx/default.conf`
+- 特殊路由:
+  - `/database/*.php` → 数据库同步工具（通过 PHP-FPM）
+  - 禁止访问 `/database/*.{sql,json,log}` 敏感文件
 
 ### MySQL 8.0
 - 容器名: `fastadmin_mysql`
@@ -156,6 +179,18 @@ docker-compose build --no-cache
 - 端口映射: `8081:8080`
 - 访问地址: http://localhost:8081
 - 功能: 完整的数据库管理工具（增删改查、表结构管理等）
+
+### 数据库同步工具
+- 访问地址: http://localhost:8080/database/sync-ui.php
+- 目录挂载: `./database` → `/var/www/database`（PHP 容器内）
+- 功能:
+  - 声明式数据库结构管理（通过 `schema.json`）
+  - 自动检测差异并生成 SQL
+  - Web UI 界面（开发环境专用）
+  - 版本日志记录（按版本号和日期）
+  - 待删除字段/表 TODO 管理
+  - 字段类型验证和兼容性检查
+- 注意: 此工具仅用于开发环境，生产环境请勿使用
 
 ## 故障排查
 
@@ -203,13 +238,52 @@ docker-compose exec php chmod -R 755 /var/www/html/runtime
 docker-compose exec php composer install --no-cache
 ```
 
+### 5. 数据库同步工具无法访问
+
+检查 Nginx 配置是否正确：
+```bash
+docker-compose exec nginx nginx -t
+```
+
+检查 PHP 容器内文件是否存在：
+```bash
+docker-compose exec php ls -la /var/www/database/sync-ui.php
+```
+
+检查 Nginx 日志：
+```bash
+docker-compose logs nginx | grep database
+```
+
+### 6. 数据库同步工具执行失败
+
+查看同步日志：
+```bash
+# 查看最新日志
+docker compose exec php ls -la /var/www/database/logs/*/
+
+# 查看今天的日志
+docker compose exec php cat /var/www/database/logs/1.0.0/$(date +%m-%d).log
+```
+
+检查数据库连接：
+```bash
+docker-compose exec php php /var/www/database/sync.php --dry-run
+```
+
 ## 注意事项
 
 1. **首次安装**: 访问 http://localhost:8080 会自动跳转到安装页面
 2. **数据库主机**: 在容器内连接数据库时，使用服务名 `mysql`；在宿主机连接时，使用 `127.0.0.1`
 3. **数据持久化**: MySQL 数据存储在 Docker volume 中，删除容器不会丢失数据（除非使用 `docker-compose down -v`）
 4. **文件修改**: 修改代码后无需重启容器，PHP-FPM 会自动加载新代码
-5. **端口冲突**: 如果 8080、3000 或 3306 端口被占用，可以在 `docker-compose.yml` 中修改端口映射
+5. **端口冲突**: 如果 8080、3000、3306 或 8082 端口被占用，可以在 `docker-compose.yml` 中修改端口映射
 6. **前端热重载**: Next.js 前端支持热重载，修改代码后会自动刷新（可能需要几秒钟）
 7. **前端依赖**: 首次启动前端服务会自动安装 npm 依赖，可能需要几分钟时间
+8. **数据库同步工具**: 
+   - 仅用于开发环境，生产环境请勿使用
+   - 通过 Nginx 路由访问：http://localhost:8080/database/sync-ui.php
+   - 敏感文件（`.sql`, `.json`, `.log`）已被 Nginx 禁止直接访问
+   - 首次使用需要先生成 `schema.json` 文件
+9. **目录挂载**: `database/` 目录挂载到 PHP 容器的 `/var/www/database`，修改 `schema.json` 后立即生效
 
