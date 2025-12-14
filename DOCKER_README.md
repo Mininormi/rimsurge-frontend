@@ -44,6 +44,7 @@ docker-compose exec php chmod -R 755 /var/www/html/runtime
 - **FastAdmin 后台**：http://localhost:8080/zvElCkbXuZ.php
 - **Next.js 前端**：http://localhost:3000
 - **Adminer 数据库管理**：http://localhost:8081
+- **Redis Commander（Redis 管理工具）**：http://localhost:8083
 - **数据库同步工具（Web UI）**：http://localhost:8080/database/sync-ui.php
 
 ## 数据库配置
@@ -92,6 +93,12 @@ docker-compose logs frontend
 
 # 查看 Adminer 服务日志
 docker-compose logs adminer
+
+# 查看 Redis 服务日志
+docker-compose logs redis
+
+# 查看 Redis Commander 服务日志
+docker-compose logs redis-commander
 ```
 
 ### 进入容器
@@ -179,6 +186,24 @@ docker-compose build --no-cache
 - 端口映射: `8081:8080`
 - 访问地址: http://localhost:8081
 - 功能: 完整的数据库管理工具（增删改查、表结构管理等）
+
+### Redis
+- 容器名: `fastadmin_redis`
+- 端口映射: `7000:6379`（宿主机端口 7000，容器内端口 6379）
+- 数据持久化: Docker volume `redis_data`
+- 数据持久化方式: AOF (Append Only File)
+- 连接方式:
+  - 容器内: `redis:6379`（使用服务名）
+  - 宿主机: `127.0.0.1:7000`（注意：宿主机使用 7000 端口）
+- 用途: Token 存储、缓存、队列等
+
+### Redis Commander（Redis 可视化管理工具）
+- 容器名: `fastadmin_redis_commander`
+- 端口映射: `8083:8081`
+- 访问地址: http://localhost:8083
+- 功能: Redis 可视化管理工具，支持浏览、编辑、删除键值对等操作
+- 特点: 轻量级、界面简洁、无需额外配置
+- 注意: 开发环境默认无需认证，生产环境建议添加密码保护
 
 ### 数据库同步工具
 - 访问地址: http://localhost:8080/database/sync-ui.php
@@ -271,19 +296,54 @@ docker compose exec php cat /var/www/database/logs/1.0.0/$(date +%m-%d).log
 docker-compose exec php php /var/www/database/sync.php --dry-run
 ```
 
+### 7. Redis 连接问题
+
+确保 Redis 容器已启动：
+```bash
+docker-compose ps redis
+```
+
+检查 Redis 日志：
+```bash
+docker-compose logs redis
+```
+
+测试 Redis 连接：
+```bash
+# 进入 Redis 容器测试
+docker-compose exec redis redis-cli ping
+
+# 或从 PHP 容器测试
+docker-compose exec php php -r "echo (new Redis())->connect('redis', 6379) ? 'Connected' : 'Failed';"
+```
+
+检查 Redis Commander 是否正常：
+```bash
+docker-compose logs redis-commander
+```
+
 ## 注意事项
 
 1. **首次安装**: 访问 http://localhost:8080 会自动跳转到安装页面
 2. **数据库主机**: 在容器内连接数据库时，使用服务名 `mysql`；在宿主机连接时，使用 `127.0.0.1`
 3. **数据持久化**: MySQL 数据存储在 Docker volume 中，删除容器不会丢失数据（除非使用 `docker-compose down -v`）
 4. **文件修改**: 修改代码后无需重启容器，PHP-FPM 会自动加载新代码
-5. **端口冲突**: 如果 8080、3000、3306 或 8082 端口被占用，可以在 `docker-compose.yml` 中修改端口映射
-6. **前端热重载**: Next.js 前端支持热重载，修改代码后会自动刷新（可能需要几秒钟）
-7. **前端依赖**: 首次启动前端服务会自动安装 npm 依赖，可能需要几分钟时间
-8. **数据库同步工具**: 
+5. **端口冲突**: 如果 8080、3000、3306、7000、8081、8082 或 8083 端口被占用，可以在 `docker-compose.yml` 中修改端口映射
+6. **Redis 连接**: 
+   - 在容器内连接 Redis 时，使用服务名 `redis` 和端口 `6379`
+   - 在宿主机连接时，使用 `127.0.0.1:7000`（注意：宿主机端口是 7000，不是 6379）
+   - Windows 系统可能保留 6318-6417 端口范围，因此使用 7000 端口避免冲突
+   - Redis 数据会持久化到 Docker volume `redis_data`，删除容器不会丢失数据（除非使用 `docker-compose down -v`）
+7. **Redis Commander**: 
+   - 访问 http://localhost:8083 即可使用，无需额外配置
+   - 默认连接到本地 Redis 服务（服务名 `redis`）
+   - 开发环境无需认证，生产环境建议配置 Redis 密码
+8. **前端热重载**: Next.js 前端支持热重载，修改代码后会自动刷新（可能需要几秒钟）
+9. **前端依赖**: 首次启动前端服务会自动安装 npm 依赖，可能需要几分钟时间
+10. **数据库同步工具**: 
    - 仅用于开发环境，生产环境请勿使用
    - 通过 Nginx 路由访问：http://localhost:8080/database/sync-ui.php
    - 敏感文件（`.sql`, `.json`, `.log`）已被 Nginx 禁止直接访问
    - 首次使用需要先生成 `schema.json` 文件
-9. **目录挂载**: `database/` 目录挂载到 PHP 容器的 `/var/www/database`，修改 `schema.json` 后立即生效
+11. **目录挂载**: `database/` 目录挂载到 PHP 容器的 `/var/www/database`，修改 `schema.json` 后立即生效
 

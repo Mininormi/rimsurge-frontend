@@ -91,10 +91,38 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  redis:
+    image: redis:alpine
+    container_name: fastadmin_redis
+    ports:
+      - "7000:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fastadmin_network
+    command: >
+      sh -c "redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    restart: unless-stopped
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: fastadmin_redis_commander
+    ports:
+      - "8083:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0${REDIS_PASSWORD:+:${REDIS_PASSWORD}}
+    networks:
+      - fastadmin_network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
 networks:
   fastadmin_network:
     driver: bridge
 
 volumes:
   mysql_data:
-
+  redis_data:
