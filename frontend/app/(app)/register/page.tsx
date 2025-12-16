@@ -54,10 +54,25 @@ export default function RegisterPage() {
     setErrors({ ...errors, email: '', verificationCode: '' })
 
     try {
-      await sendVerificationCode(formData.email.trim())
-      setCountdown(120) // 120秒倒计时
+      const response = await sendVerificationCode(formData.email.trim(), 'register')
+      // 使用后端返回的冷却时间，如果没有则使用默认60秒
+      setCountdown(response.rate_limit_seconds || 60)
     } catch (err: any) {
-      setErrors({ ...errors, verificationCode: err.detail || '发送验证码失败' })
+      // 显示后端返回的错误信息
+      const errorMessage = err.detail || '发送验证码失败'
+      setErrors({ ...errors, verificationCode: errorMessage })
+      // 如果是限流错误，尝试从错误信息中提取剩余时间
+      if (err.status === 429) {
+        // 429 错误表示限流，后端会返回剩余时间信息
+        // 如果错误信息包含剩余时间，解析并设置倒计时
+        const match = errorMessage.match(/剩余 (\d+) 秒/)
+        if (match) {
+          setCountdown(parseInt(match[1]))
+        } else {
+          // 如果没有剩余时间信息，设置默认60秒
+          setCountdown(60)
+        }
+      }
     } finally {
       setIsSendingCode(false)
     }
@@ -127,7 +142,13 @@ export default function RegisterPage() {
       // 跳转到首页
       router.push('/')
     } catch (err: any) {
-      setErrors({ ...errors, submit: err.detail || '注册失败，请稍后再试' })
+      const errorMessage = err.detail || '注册失败，请稍后再试'
+      // 如果是验证码错误，显示在验证码字段
+      if (errorMessage.includes('验证码')) {
+        setErrors({ ...errors, verificationCode: errorMessage })
+      } else {
+        setErrors({ ...errors, submit: errorMessage })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -261,7 +282,7 @@ export default function RegisterPage() {
                 <p className="mt-1 text-xs text-red-600">{errors.verificationCode}</p>
               )}
               <p className="mt-1 text-xs text-slate-500">
-                验证码将发送到您的邮箱，有效期为 5 分钟
+                验证码将发送到您的邮箱，有效期为 5 分钟。发送后需等待 1 分钟才能再次发送。
               </p>
             </div>
 

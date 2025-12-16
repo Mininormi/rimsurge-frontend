@@ -67,19 +67,28 @@ export async function register(data: RegisterRequest): Promise<RegisterResponse>
 /**
  * 发送验证码
  */
-export async function sendVerificationCode(email: string): Promise<SendVerificationCodeResponse> {
+export async function sendVerificationCode(
+  email: string,
+  scene: 'register' | 'reset' = 'register'
+): Promise<SendVerificationCodeResponse> {
   return apiClient.post<SendVerificationCodeResponse>('/auth/send-verification-code', {
     email,
+    scene,
   })
 }
 
 /**
  * 验证验证码
  */
-export async function verifyCode(email: string, code: string): Promise<VerifyCodeResponse> {
+export async function verifyCode(
+  email: string,
+  code: string,
+  scene: 'register' | 'reset' = 'register'
+): Promise<VerifyCodeResponse> {
   return apiClient.post<VerifyCodeResponse>('/auth/verify-code', {
     email,
     code,
+    scene,
   })
 }
 

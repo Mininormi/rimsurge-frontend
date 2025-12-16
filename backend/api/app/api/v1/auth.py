@@ -15,7 +15,7 @@ from app.core.security import (
     generate_csrf_token
 )
 from app.core.redis_client import redis_client
-from app.core.email import send_verification_code_email
+from app.core.email import send_verification_code_email, send_account_exists_notification_email
 from app.core.verification_code import verification_code_client
 from app.api.deps import verify_csrf_token, verify_origin_only
 from app.schemas.auth import (
@@ -286,58 +286,118 @@ async def logout(
 @router.post("/send-verification-code", response_model=SendVerificationCodeResponse, summary="发送邮箱验证码")
 async def send_verification_code(
     request: SendVerificationCodeRequest,
-    req: Request
+    req: Request,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_origin_only)  # Origin 校验（首次请求还没有 CSRF Token）
 ):
     """
-    发送邮箱验证码
+    发送邮箱验证码（场景分离 + 反枚举保护）
     
-    验证码有效期为 5 分钟
-    同一邮箱每 120 秒只能发送一次
-    同一 IP 每 120 秒只能发送一次
+    场景：
+    - register（注册）：邮箱已存在 → 不发注册验证码，可能发提示邮件
+    - reset（找回密码）：邮箱不存在 → 不发重置邮件
+    
+    安全限制：
+    1. 1分钟冷却时间（前后端一致，按场景分离）
+    2. 同IP不同邮箱或同邮箱不同IP连续发送6次 → ban 3小时（按场景分离）
+    3. 验证码有效期为 5 分钟（按场景分离）
+    
+    反枚举保护：
+    - 无论邮箱是否存在，都返回相同的响应（200状态码）
+    - 统一消息："如果该邮箱可用，你将收到邮件/验证码"
     
     注意：此接口不要求 CSRF Token（未登录用户可能没有），改用强限流/风控（IP+邮箱维度）
     """
     email = request.email.lower().strip()
+    scene = request.scene.lower().strip()
+    
+    # 验证场景参数
+    if scene not in ("register", "reset"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="场景参数无效，必须是 register 或 reset"
+        )
     
     # 获取客户端 IP
     client_ip = req.client.host if req.client else "unknown"
     
-    # 检查邮箱维度的发送频率限制
-    if not verification_code_client.check_rate_limit(email):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="发送过于频繁，请稍后再试"
+    # 1. 检查邮箱是否存在（先查缓存）
+    email_exists_cached = verification_code_client.check_email_exists_cache(email)
+    if email_exists_cached is None:
+        # 缓存不存在，查询数据库
+        users_table = get_table("fa_user")
+        result = db.execute(
+            select(users_table.c.id).where(users_table.c.email == email).limit(1)
+        )
+        email_exists = result.fetchone() is not None
+        # 设置缓存（3小时）
+        verification_code_client.set_email_exists_cache(email, email_exists, ttl=10800)
+    else:
+        email_exists = email_exists_cached
+    
+    # 2. 检查1分钟冷却时间（按场景分离）
+    can_send, remaining_seconds = verification_code_client.check_cooldown(email, client_ip, scene)
+    if not can_send:
+        # 反枚举保护：返回统一响应
+        return SendVerificationCodeResponse(
+            message="如果该邮箱可用，你将收到邮件/验证码",
+            # 反枚举：不要返回真实剩余秒数（会泄露限流状态）
+            rate_limit_seconds=60
         )
     
-    # 检查 IP 维度的发送频率限制
-    if not verification_code_client.check_ip_rate_limit(client_ip):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="发送过于频繁，请稍后再试"
+    # 3. 检查是否被 ban（6次发送后ban 3小时，按场景分离）
+    can_send, ban_remaining = verification_code_client.record_send_attempt(email, client_ip, scene)
+    if not can_send:
+        # 反枚举保护：被 ban 时也返回统一响应（200状态码），不暴露限流状态
+        return SendVerificationCodeResponse(
+            message="如果该邮箱可用，你将收到邮件/验证码",
+            rate_limit_seconds=60  # 返回统一的冷却时间，不暴露 ban 状态
         )
     
-    # 生成验证码
-    code = verification_code_client.generate_code()
+    # 4. 根据场景判断是否发送验证码
+    should_send_code = False
     
-    # 存储验证码到 Redis
-    if not verification_code_client.set_code(email, code):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="验证码生成失败，请稍后再试"
-        )
+    if scene == "register":
+        # 注册场景：邮箱不存在才发送验证码
+        if not email_exists:
+            should_send_code = True
+        else:
+            # 邮箱已存在，发送提示邮件（可选，不影响响应）
+            send_account_exists_notification_email(email)
     
-    # 发送邮件
-    if not send_verification_code_email(email, code):
-        # 如果发送失败，删除已存储的验证码
-        verification_code_client.delete_code(email)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="邮件发送失败，请检查邮箱配置或稍后再试"
-        )
+    elif scene == "reset":
+        # 找回密码场景：邮箱存在才发送验证码
+        if email_exists:
+            should_send_code = True
     
+    # 5. 如果需要发送验证码，生成并发送
+    if should_send_code:
+        # 生成验证码
+        code = verification_code_client.generate_code()
+        
+        # 存储验证码到 Redis（按场景分离）
+        if not verification_code_client.set_code(email, code, scene):
+            # 反枚举保护：即使失败也返回统一响应
+            return SendVerificationCodeResponse(
+                message="如果该邮箱可用，你将收到邮件/验证码",
+                rate_limit_seconds=60
+            )
+        
+        # 发送邮件
+        send_success = send_verification_code_email(email, code)
+        if not send_success:
+            # 如果发送失败，删除已存储的验证码
+            verification_code_client.delete_code(email, scene)
+            # 反枚举保护：即使失败也返回统一响应
+            return SendVerificationCodeResponse(
+                message="如果该邮箱可用，你将收到邮件/验证码",
+                rate_limit_seconds=60
+            )
+    
+    # 6. 反枚举保护：无论是否发送，都返回统一响应
     return SendVerificationCodeResponse(
-        message="验证码已发送，请查收邮件",
-        rate_limit_seconds=settings.VERIFICATION_CODE_RATE_LIMIT_SECONDS
+        message="如果该邮箱可用，你将收到邮件/验证码",
+        rate_limit_seconds=60  # 1分钟冷却时间
     )
 
 
@@ -346,21 +406,51 @@ async def verify_code(request: VerifyCodeRequest):
     """
     验证邮箱验证码
     
-    验证成功后验证码会被删除（一次性使用）
+    安全限制：
+    - 验证成功后验证码会被删除（一次性使用）
+    - 6次验证失败后删除验证码，需要重新发送
+    - 按场景分离（register/reset）
     """
     email = request.email.lower().strip()
     code = request.code.strip()
+    scene = request.scene.lower().strip() if request.scene else "register"
     
-    # 验证验证码
-    if verification_code_client.verify_code(email, code):
+    # 验证场景参数
+    if scene not in ("register", "reset"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="场景参数无效，必须是 register 或 reset"
+        )
+    
+    # 验证验证码（按场景分离）
+    is_valid, error_msg = verification_code_client.verify_code(email, code, scene)
+    if is_valid:
         return VerifyCodeResponse(
             valid=True,
             message="验证码正确"
         )
+    
+    # 验证失败，记录失败次数（只有在验证码存在但错误时才记录）
+    if error_msg == "验证码错误":
+        can_continue, failure_count = verification_code_client.record_verify_failure(email, scene)
+        
+        if not can_continue:
+            # 6次失败，删除验证码
+            return VerifyCodeResponse(
+                valid=False,
+                message="验证码错误次数过多，请重新发送验证码"
+            )
+        else:
+            remaining_attempts = 6 - failure_count
+            return VerifyCodeResponse(
+                valid=False,
+                message=f"验证码错误（剩余 {remaining_attempts} 次尝试）"
+            )
     else:
+        # 验证码不存在或已过期
         return VerifyCodeResponse(
             valid=False,
-            message="验证码错误或已过期"
+            message=error_msg or "验证码错误或已过期"
         )
 
 
@@ -382,11 +472,21 @@ async def register(
     password = request.password
     verification_code = request.verification_code.strip()
     
-    # 验证验证码
-    if not verification_code_client.verify_code(email, verification_code):
+    # 验证验证码（注册场景使用 register）
+    is_valid, error_msg = verification_code_client.verify_code(email, verification_code, scene="register")
+    if not is_valid:
+        # 只有在验证码存在但错误时才记录失败次数
+        if error_msg == "验证码错误":
+            can_continue, failure_count = verification_code_client.record_verify_failure(email, scene="register")
+            if not can_continue:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="验证码错误次数过多，请重新发送验证码"
+                )
+        
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="验证码错误或已过期"
+            detail=error_msg or "验证码错误或已过期"
         )
     
     # 获取用户表

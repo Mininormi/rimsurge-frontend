@@ -66,6 +66,7 @@ class LoginResponse(BaseModel):
 class SendVerificationCodeRequest(BaseModel):
     """发送验证码请求"""
     email: EmailStr = Field(..., description="邮箱地址")
+    scene: str = Field(..., description="场景：register（注册）或 reset（找回密码）")
 
 
 class SendVerificationCodeResponse(BaseModel):
@@ -78,6 +79,7 @@ class VerifyCodeRequest(BaseModel):
     """验证验证码请求"""
     email: EmailStr = Field(..., description="邮箱地址")
     code: str = Field(..., min_length=6, max_length=6, description="6位验证码")
+    scene: str = Field(default="register", description="场景：register（注册）或 reset（找回密码）")
 
 
 class VerifyCodeResponse(BaseModel):

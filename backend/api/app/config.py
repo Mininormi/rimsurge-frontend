@@ -80,6 +80,7 @@ class Settings(BaseSettings):
     VERIFICATION_CODE_EXPIRE_SECONDS: int = 300  # 验证码过期时间（5分钟）
     VERIFICATION_CODE_RATE_LIMIT_SECONDS: int = 120  # 发送频率限制（120秒）
     VERIFICATION_CODE_RATE_LIMIT_ENABLED: bool = True  # 是否启用发送频率限制（开发环境可设为 False）
+    VERIFICATION_CODE_PEPPER: str = "RimSurge_Verification_Code_Pepper_2024"  # 验证码服务端密钥（请在生产环境修改）
     
     class Config:
         env_file = ".env"
