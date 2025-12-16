@@ -347,7 +347,8 @@ CSRF_TRUSTED_ORIGINS: list[str] = [
 ### 登录/注册接口的 CSRF 处理
 
 由于登录/注册是用户首次交互，此时还没有 CSRF Token，因此：
-- **登录/注册接口不校验 CSRF Token**（但设置 CSRF Token Cookie）
+- **登录/注册接口不做 CSRF Token 双提交校验（因为首次还没有 csrf_token），**
+  **但必须做严格的 Origin/Referer 白名单校验（同源发起），并在成功后下发 csrf_token Cookie。**
 - **其他所有写请求都必须校验 CSRF Token**
 
 ### 验证码接口的 CSRF 处理

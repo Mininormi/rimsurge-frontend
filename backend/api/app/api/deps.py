@@ -90,6 +90,56 @@ async def get_current_user_optional(
         return None
 
 
+async def verify_origin_only(request: Request):
+    """
+    Origin/Referer 校验依赖（用于登录/注册接口）
+    
+    校验规则：
+    - 只检查 Origin 头是否在白名单中（Origin 为空时校验 Referer 作为兜底）
+    - 不校验 CSRF Token（因为首次请求还没有 csrf_token）
+    
+    使用场景：
+    - 登录/注册接口（用户首次交互，还没有 CSRF Token）
+    
+    使用方式：
+        @router.post("/login")
+        async def login(
+            ...,
+            _: None = Depends(verify_origin_only)  # Origin 校验
+        ):
+            ...
+    
+    重要：
+    - 登录/注册接口必须添加此依赖，防止跨站请求伪造
+    - 成功后必须下发 csrf_token Cookie，供后续请求使用
+    """
+    # 校验 Origin 头（写请求必须校验）
+    origin = request.headers.get("Origin")
+    referer = request.headers.get("Referer")
+    
+    # 如果 Origin 为空，尝试从 Referer 提取 origin
+    if not origin and referer:
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(referer)
+            origin = f"{parsed.scheme}://{parsed.netloc}"
+        except Exception:
+            pass
+    
+    # Origin 或 Referer 必须存在且在白名单中
+    if not origin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Missing Origin header"
+        )
+    
+    if origin not in settings.CSRF_TRUSTED_ORIGINS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid Origin"
+        )
+
+
 async def verify_csrf_token(request: Request):
     """
     CSRF Token 校验依赖

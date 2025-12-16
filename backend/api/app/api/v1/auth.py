@@ -17,7 +17,7 @@ from app.core.security import (
 from app.core.redis_client import redis_client
 from app.core.email import send_verification_code_email
 from app.core.verification_code import verification_code_client
-from app.api.deps import verify_csrf_token
+from app.api.deps import verify_csrf_token, verify_origin_only
 from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
@@ -41,7 +41,8 @@ async def login(
     request: LoginRequest,
     req: Request,
     response: Response,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_origin_only)  # Origin 校验（首次请求还没有 CSRF Token）
 ):
     """
     账号密码登录
@@ -368,7 +369,8 @@ async def register(
     request: RegisterRequest,
     req: Request,
     response: Response,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_origin_only)  # Origin 校验（首次请求还没有 CSRF Token）
 ):
     """
     用户注册
