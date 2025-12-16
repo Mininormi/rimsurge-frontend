@@ -10,13 +10,14 @@ from typing import Optional
 from app.config import settings
 
 
-def send_verification_code_email(to_email: str, code: str) -> bool:
+def send_verification_code_email(to_email: str, code: str, scene: str = "register") -> bool:
     """
     发送邮箱验证码邮件
     
     Args:
         to_email: 收件人邮箱
         code: 6位验证码
+        scene: 场景（register/reset）
     
     Returns:
         是否发送成功
@@ -32,7 +33,17 @@ def send_verification_code_email(to_email: str, code: str) -> bool:
         from_name_header = Header(settings.SMTP_FROM_NAME, 'utf-8')
         msg['From'] = formataddr((str(from_name_header), settings.SMTP_FROM_EMAIL))
         msg['To'] = to_email
-        subject_header = Header("RimSurge 邮箱验证码", 'utf-8')
+        # 根据场景设置邮件主题和内容
+        if scene == "reset":
+            subject_text = "RimSurge 密码重置验证码"
+            action_text = "重置密码"
+            description_text = "您正在重置 RimSurge 账号密码，请使用以下验证码完成验证："
+        else:
+            subject_text = "RimSurge 邮箱验证码"
+            action_text = "注册账号"
+            description_text = "您正在注册 RimSurge 账号，请使用以下验证码完成验证："
+        
+        subject_header = Header(subject_text, 'utf-8')
         msg['Subject'] = str(subject_header)
         
         # HTML 邮件内容
@@ -92,9 +103,9 @@ def send_verification_code_email(to_email: str, code: str) -> bool:
         <body>
             <div class="container">
                 <div class="content">
-                    <h2>RimSurge 邮箱验证码</h2>
+                    <h2>{subject_text}</h2>
                     <p>您好！</p>
-                    <p>您正在注册 RimSurge 账号，请使用以下验证码完成验证：</p>
+                    <p>{description_text}</p>
                     
                     <div class="code-box">
                         <div class="code">{code}</div>
@@ -115,11 +126,11 @@ def send_verification_code_email(to_email: str, code: str) -> bool:
         
         # 纯文本内容（备用）
         text_content = f"""
-        RimSurge 邮箱验证码
+        {subject_text}
         
         您好！
         
-        您正在注册 RimSurge 账号，请使用以下验证码完成验证：
+        {description_text}
         
         验证码：{code}
         

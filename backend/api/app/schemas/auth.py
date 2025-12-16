@@ -107,3 +107,15 @@ class RegisterResponse(BaseModel):
     user: UserInfo
     message: str = Field(default="注册成功", description="提示信息")
 
+
+class ResetPasswordRequest(BaseModel):
+    """重置密码请求"""
+    email: EmailStr = Field(..., description="邮箱地址")
+    code: str = Field(..., min_length=6, max_length=6, description="6位验证码")
+    new_password: str = Field(..., min_length=6, description="新密码")
+
+
+class ResetPasswordResponse(BaseModel):
+    """重置密码响应"""
+    message: str = Field(default="密码重置成功", description="提示信息")
+

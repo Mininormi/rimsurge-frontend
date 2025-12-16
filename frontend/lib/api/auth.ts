@@ -46,6 +46,16 @@ export interface VerifyCodeResponse {
   message: string
 }
 
+export interface ResetPasswordRequest {
+  email: string
+  code: string
+  new_password: string
+}
+
+export interface ResetPasswordResponse {
+  message: string
+}
+
 /**
  * 登录
  */
@@ -115,4 +125,11 @@ export async function getCurrentUser(): Promise<UserInfo> {
  */
 export async function refreshToken(): Promise<{ message: string }> {
   return apiClient.post('/auth/refresh', {})
+}
+
+/**
+ * 重置密码
+ */
+export async function resetPassword(data: ResetPasswordRequest): Promise<ResetPasswordResponse> {
+  return apiClient.post<ResetPasswordResponse>('/auth/reset-password', data)
 }

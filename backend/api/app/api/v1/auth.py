@@ -27,7 +27,9 @@ from app.schemas.auth import (
     VerifyCodeRequest,
     VerifyCodeResponse,
     RegisterRequest,
-    RegisterResponse
+    RegisterResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse
 )
 from app.schemas.user import UserResponse
 from app.api.deps import get_current_user
@@ -383,8 +385,8 @@ async def send_verification_code(
                 rate_limit_seconds=60
             )
         
-        # 发送邮件
-        send_success = send_verification_code_email(email, code)
+        # 发送邮件（传入场景参数）
+        send_success = send_verification_code_email(email, code, scene)
         if not send_success:
             # 如果发送失败，删除已存储的验证码
             verification_code_client.delete_code(email, scene)
@@ -555,6 +557,10 @@ async def register(
     )
     db.commit()
     
+    # 更新 email_exists 缓存（方案A：注册成功后立即更新缓存，确保忘记密码功能可用）
+    # 这样即使之前有 "email_exists=False" 的缓存，注册成功后也会立即更新为 True
+    verification_code_client.set_email_exists_cache(email, True, ttl=10800)
+    
     # 获取新创建的用户ID
     user_id = user_id_result.lastrowid
     
@@ -634,6 +640,88 @@ async def register(
             platform=user_dict.get("platform", "web"),
         ),
         message="注册成功"
+    )
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse, summary="重置密码")
+async def reset_password(
+    request: ResetPasswordRequest,
+    req: Request,
+    db: Session = Depends(get_db),
+    _: None = Depends(verify_origin_only)  # Origin 校验（未登录用户没有 CSRF Token）
+):
+    """
+    重置密码（通过邮箱验证码）
+    
+    安全限制：
+    - 需要先发送验证码（scene=reset）
+    - 验证码验证成功后更新密码
+    - 验证码验证失败6次后需要重新发送
+    - 按场景分离（reset）
+    
+    注意：此接口不要求 CSRF Token（未登录用户可能没有），使用 Origin/Referer 校验
+    """
+    email = request.email.lower().strip()
+    code = request.code.strip()
+    new_password = request.new_password
+    
+    # 验证验证码（reset 场景）
+    is_valid, error_msg = verification_code_client.verify_code(email, code, scene="reset")
+    if not is_valid:
+        # 验证失败，记录失败次数（只有在验证码存在但错误时才记录）
+        if error_msg == "验证码错误":
+            can_continue, failure_count = verification_code_client.record_verify_failure(email, scene="reset")
+            if not can_continue:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="验证码错误次数过多，请重新发送验证码"
+                )
+        
+        # 反枚举保护：不透露具体错误原因
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="验证码错误或已过期"
+        )
+    
+    # 获取用户表
+    users_table = get_table("fa_user")
+    
+    # 查询用户
+    result = db.execute(
+        select(users_table).where(users_table.c.email == email)
+    )
+    user_row = result.fetchone()
+    
+    if not user_row:
+        # 反枚举保护：即使邮箱不存在也返回相同错误
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="验证码错误或已过期"
+        )
+    
+    user_dict = dict(user_row._mapping)
+    
+    # 生成新的盐值
+    new_salt = secrets.token_hex(8)
+    
+    # 加密新密码
+    hashed_password = hash_password(new_password, new_salt)
+    
+    # 更新密码
+    now_timestamp = int(datetime.utcnow().timestamp())
+    db.execute(
+        users_table.update()
+        .where(users_table.c.id == user_dict["id"])
+        .values(
+            password=hashed_password,
+            salt=new_salt,
+            updatetime=now_timestamp,
+        )
+    )
+    db.commit()
+    
+    return ResetPasswordResponse(
+        message="密码重置成功，请使用新密码登录"
     )
 
 
