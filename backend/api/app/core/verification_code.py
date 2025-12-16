@@ -11,15 +11,20 @@ class VerificationCodeRedisClient:
     """验证码 Redis 客户端（使用 DB 10）"""
     
     def __init__(self):
-        self.client = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            password=settings.REDIS_PASSWORD,
-            db=10,  # 验证码专用数据库
-            decode_responses=True,
-            socket_connect_timeout=5,
-            socket_timeout=5,
-        )
+        # 如果密码为空字符串或 None，则不传递 password 参数
+        redis_kwargs = {
+            "host": settings.REDIS_HOST,
+            "port": settings.REDIS_PORT,
+            "db": 10,  # 验证码专用数据库
+            "decode_responses": True,
+            "socket_connect_timeout": 5,
+            "socket_timeout": 5,
+        }
+        # 只有当密码存在且非空时才添加 password 参数
+        if settings.REDIS_PASSWORD:
+            redis_kwargs["password"] = settings.REDIS_PASSWORD
+        
+        self.client = redis.Redis(**redis_kwargs)
     
     def generate_code(self) -> str:
         """

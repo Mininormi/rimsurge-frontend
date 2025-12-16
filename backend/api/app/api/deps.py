@@ -2,46 +2,38 @@
 依赖注入：用户认证等
 """
 from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from typing import Optional
 from app.database import get_db, get_table
 from app.core.security import verify_access_token
 from app.schemas.user import UserResponse
 from app.config import settings
 
-security = HTTPBearer(auto_error=False)
-
 
 async def get_current_user(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> dict:
     """
     获取当前登录用户（依赖注入）
     
-    支持从 Authorization Header 或 Cookie 中获取 token
+    Web API 认证方式：仅支持 HttpOnly Cookie 中的 access_token
+    
+    ⚠️ 重要：本函数仅支持 Cookie 认证，不支持 Authorization: Bearer
+    如果请求中包含 Authorization: Bearer Header，将被忽略
     
     使用方式：
         @app.get("/me")
         def get_me(current_user: dict = Depends(get_current_user)):
             ...
     """
-    # 优先从 Header 获取 token
-    token = None
-    if credentials:
-        token = credentials.credentials
-    else:
-        # 从 Cookie 获取 token
-        token = request.cookies.get("access_token")
+    # 从 Cookie 获取 token（Web API 只支持 Cookie 认证）
+    token = request.cookies.get("access_token")
     
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
         )
     
     # 验证 Access Token
@@ -50,7 +42,6 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
         )
     
     user_id = payload.get("user_id")
@@ -87,14 +78,14 @@ async def get_current_user(
 
 async def get_current_user_optional(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
-) -> Optional[dict]:
+):
     """
     获取当前登录用户（可选，未登录返回 None）
     """
+    from typing import Optional
     try:
-        return await get_current_user(request, credentials, db)
+        return await get_current_user(request, db)
     except HTTPException:
         return None
 
@@ -104,9 +95,8 @@ async def verify_csrf_token(request: Request):
     CSRF Token 校验依赖
     
     校验规则：
-    1. 只对写请求（POST/PUT/PATCH/DELETE）进行校验，GET/HEAD/OPTIONS 跳过
-    2. 检查 Origin 头是否在白名单中（Origin 为空时校验 Referer 作为兜底）
-    3. 检查 Header 中的 X-CSRF-Token 是否等于 Cookie 中的 csrf_token
+    1. 检查 Origin 头是否在白名单中（Origin 为空时校验 Referer 作为兜底）
+    2. 检查 Header 中的 X-CSRF-Token 是否等于 Cookie 中的 csrf_token
     
     安全说明：
     - 攻击者读不到 cookie 主要靠同源策略（evil.com 的 JS 读不到 rimsurge.com 的 cookie）
@@ -120,12 +110,11 @@ async def verify_csrf_token(request: Request):
         ):
             ...
     
-    重要：所有写接口（POST/PUT/PATCH/DELETE）必须显式添加此依赖，漏一个就等于安全漏洞！
+    重要：
+    - 所有写接口（POST/PUT/PATCH/DELETE）必须显式添加此依赖，漏一个就等于安全漏洞！
+    - 此函数不判断 HTTP method，由开发者是否在路由上添加 Depends 来决定是否校验
+    - 如果开发者忘记添加 Depends，接口将直接暴露，不会被"伪安全"掩盖
     """
-    # 0. 只对写请求进行校验（GET/HEAD/OPTIONS 跳过）
-    if request.method in ("GET", "HEAD", "OPTIONS"):
-        return None
-    
     # 1. 校验 Origin 头（写请求必须校验）
     origin = request.headers.get("Origin")
     referer = request.headers.get("Referer")

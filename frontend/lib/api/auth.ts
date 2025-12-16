@@ -27,18 +27,10 @@ export interface UserInfo {
 }
 
 export interface LoginResponse {
-  access_token: string
-  refresh_token: string
-  token_type: string
-  expires_in: number
   user: UserInfo
 }
 
 export interface RegisterResponse {
-  access_token: string
-  refresh_token: string
-  token_type: string
-  expires_in: number
   user: UserInfo
   message: string
 }
@@ -91,11 +83,11 @@ export async function verifyCode(email: string, code: string): Promise<VerifyCod
 
 /**
  * 登出
+ * 
+ * Web API：从 Cookie 中读取 refresh_token，不需要传递参数
  */
-export async function logout(refreshToken: string): Promise<{ message: string }> {
-  return apiClient.post('/auth/logout', {
-    refresh_token: refreshToken,
-  })
+export async function logout(): Promise<{ message: string }> {
+  return apiClient.post('/auth/logout', {})
 }
 
 /**
@@ -107,14 +99,9 @@ export async function getCurrentUser(): Promise<UserInfo> {
 
 /**
  * 刷新 Token
+ * 
+ * Web API：从 Cookie 中读取 refresh_token，通过 Cookie 返回新的 access_token
  */
-export async function refreshToken(refreshToken: string): Promise<{
-  access_token: string
-  refresh_token: string
-  token_type: string
-  expires_in: number
-}> {
-  return apiClient.post('/auth/refresh', {
-    refresh_token: refreshToken,
-  })
+export async function refreshToken(): Promise<{ message: string }> {
+  return apiClient.post('/auth/refresh', {})
 }

@@ -53,11 +53,12 @@ class UserInfo(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    """登录响应"""
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int
+    """登录响应
+    
+    ⚠️ 安全说明：
+    - Token 仅通过 HttpOnly Cookie 返回，不在响应体中返回
+    - 响应体只返回用户信息，前端不应持有任何 token
+    """
     user: UserInfo
 
 
@@ -94,11 +95,12 @@ class RegisterRequest(BaseModel):
 
 
 class RegisterResponse(BaseModel):
-    """注册响应"""
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    expires_in: int
+    """注册响应
+    
+    ⚠️ 安全说明：
+    - Token 仅通过 HttpOnly Cookie 返回，不在响应体中返回
+    - 响应体只返回用户信息，前端不应持有任何 token
+    """
     user: UserInfo
     message: str = Field(default="注册成功", description="提示信息")
 

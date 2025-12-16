@@ -20,9 +20,6 @@ from app.core.verification_code import verification_code_client
 from app.api.deps import verify_csrf_token
 from app.schemas.auth import (
     LoginRequest,
-    RefreshTokenRequest,
-    LogoutRequest,
-    TokenResponse,
     LoginResponse,
     UserInfo,
     SendVerificationCodeRequest,
@@ -162,12 +159,8 @@ async def login(
         max_age=settings.CSRF_TOKEN_EXPIRE_SECONDS,  # 使用配置的过期时间（默认1天）
     )
     
-    # 返回响应
+    # 返回响应（只返回用户信息，Token 通过 Cookie 返回）
     return LoginResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
         user=UserInfo(
             id=user_dict["id"],
             username=user_dict.get("username", ""),
@@ -180,17 +173,26 @@ async def login(
     )
 
 
-@router.post("/refresh", response_model=TokenResponse, summary="刷新Access Token")
+@router.post("/refresh", summary="刷新Access Token")
 async def refresh_token(
-    request: RefreshTokenRequest,
     req: Request,
+    response: Response,
     db: Session = Depends(get_db),
     _: None = Depends(verify_csrf_token)  # CSRF 校验
 ):
     """
     使用 Refresh Token 刷新 Access Token
+    
+    Web API：从 Cookie 中读取 refresh_token，通过 Cookie 返回新的 access_token
     """
-    refresh_token = request.refresh_token
+    # 从 Cookie 获取 refresh_token（Web API 只支持 Cookie）
+    refresh_token = req.cookies.get("refresh_token")
+    
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token not found"
+        )
     
     # 从 Redis 获取 Refresh Token 信息
     token_data = redis_client.get_refresh_token(refresh_token)
@@ -208,28 +210,44 @@ async def refresh_token(
         device_type=token_data["device_type"]
     )
     
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,  # Refresh Token 不变
-        token_type="bearer",
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
+    # 通过 Cookie 返回新的 access_token（不返回响应体）
+    is_production = not settings.DEBUG
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_production,
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
     )
+    
+    # 返回空响应（Token 通过 Cookie 返回）
+    return {"message": "Token refreshed successfully"}
 
 
 @router.post("/logout", summary="登出")
 async def logout(
-    request: LogoutRequest,
     req: Request,
+    response: Response,
     db: Session = Depends(get_db),
     _: None = Depends(verify_csrf_token)  # CSRF 校验
 ):
     """
     登出（撤销 Refresh Token）
-    """
-    refresh_token = request.refresh_token
     
-    # 从 Redis 删除
-    redis_client.delete_refresh_token(refresh_token)
+    Web API：从 Cookie 中读取 refresh_token
+    """
+    # 从 Cookie 获取 refresh_token（Web API 只支持 Cookie）
+    refresh_token = req.cookies.get("refresh_token")
+    
+    if refresh_token:
+        # 从 Redis 删除
+        redis_client.delete_refresh_token(refresh_token)
+    
+    # 清除所有认证相关的 Cookie
+    response.delete_cookie(key="access_token", path="/")
+    response.delete_cookie(key="refresh_token", path="/")
+    response.delete_cookie(key="csrf_token", path="/")
     
     return {"message": "Logged out successfully"}
 
@@ -461,11 +479,8 @@ async def register(
     user_row = result.fetchone()
     user_dict = dict(user_row._mapping)
     
+    # 返回响应（只返回用户信息，Token 通过 Cookie 返回）
     return RegisterResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-        expires_in=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
         user=UserInfo(
             id=user_dict["id"],
             username=user_dict.get("username", ""),

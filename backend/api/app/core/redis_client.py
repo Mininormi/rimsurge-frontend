@@ -13,15 +13,20 @@ class RedisClient:
     """Redis 客户端封装"""
     
     def __init__(self):
-        self.client = redis.Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            password=settings.REDIS_PASSWORD,
-            db=settings.REDIS_DB,
-            decode_responses=settings.REDIS_DECODE_RESPONSES,
-            socket_connect_timeout=5,
-            socket_timeout=5,
-        )
+        # 如果密码为空字符串或 None，则不传递 password 参数
+        redis_kwargs = {
+            "host": settings.REDIS_HOST,
+            "port": settings.REDIS_PORT,
+            "db": settings.REDIS_DB,
+            "decode_responses": settings.REDIS_DECODE_RESPONSES,
+            "socket_connect_timeout": 5,
+            "socket_timeout": 5,
+        }
+        # 只有当密码存在且非空时才添加 password 参数
+        if settings.REDIS_PASSWORD:
+            redis_kwargs["password"] = settings.REDIS_PASSWORD
+        
+        self.client = redis.Redis(**redis_kwargs)
     
     def ping(self) -> bool:
         """检查 Redis 连接"""
@@ -64,11 +69,16 @@ class RedisClient:
         }
         
         try:
+            key = f"refresh_token:{refresh_token}"
             self.client.setex(
-                f"refresh_token:{refresh_token}",
+                key,
                 expire_seconds,
                 json.dumps(data)
             )
+            # 验证是否存储成功
+            stored = self.client.get(key)
+            if not stored:
+                return False
             return True
         except Exception:
             return False

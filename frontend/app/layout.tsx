@@ -1,6 +1,7 @@
 // app/layout.tsx
 import type { Metadata } from 'next'
 import './globals.css'
+import { AuthProvider } from '@/lib/auth/context'
 
 export const metadata: Metadata = {
   title: 'Rimsurge · 东街车房',
@@ -11,10 +12,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="zh-Hans">
       <body className="relative bg-white overflow-x-hidden">
-        <div className="relative z-10 flex min-h-screen flex-col">
-          {/* 顶部留出 Header 高度，避免内容被盖住 */}
-          <main className="flex-1 w-full">{children}</main>
-        </div>
+        <AuthProvider>
+          <div className="relative z-10 flex min-h-screen flex-col">
+            {/* 顶部留出 Header 高度，避免内容被盖住 */}
+            <main className="flex-1 w-full">{children}</main>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   )

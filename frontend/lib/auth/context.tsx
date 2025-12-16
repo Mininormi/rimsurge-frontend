@@ -5,7 +5,7 @@
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser, UserInfo } from '../api/auth'
+import { getCurrentUser, logout as logoutApi, UserInfo } from '../api/auth'
 
 interface AuthContextType {
   user: UserInfo | null
@@ -56,9 +56,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * 登出
    */
   const logout = useCallback(async () => {
-    setUser(null)
-    // 清除 Cookie 由后端处理，这里只需要清除本地状态
-    router.push('/login')
+    try {
+      // 调用后端 API 清除 Cookie
+      await logoutApi()
+    } catch (error) {
+      // 即使 API 调用失败，也清除本地状态
+      console.error('Logout failed:', error)
+    } finally {
+      setUser(null)
+      router.push('/login')
+    }
   }, [router])
 
   const value: AuthContextType = {

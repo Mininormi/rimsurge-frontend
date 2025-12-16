@@ -16,5 +16,6 @@ COPY . .
 EXPOSE 3000
 
 # 启动开发服务器（监听所有接口，支持 Docker）
-CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0"]
+# 使用 --webpack 标志以支持 webpack 配置（文件轮询）
+CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0", "--webpack"]
 

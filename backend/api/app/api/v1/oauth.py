@@ -1,13 +1,13 @@
 """
 OAuth 路由：微信小程序、Gmail 登录
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import datetime
 import secrets
 from app.database import get_db, get_table
-from app.core.security import create_access_token, hash_password
+from app.core.security import create_access_token, hash_password, generate_csrf_token
 from app.core.redis_client import redis_client
 from app.core.oauth import get_wechat_openid, verify_google_id_token
 from app.schemas.auth import (
@@ -25,6 +25,7 @@ router = APIRouter()
 async def wechat_miniapp_login(
     request: WechatMiniAppLoginRequest,
     req: Request,
+    response: Response,
     db: Session = Depends(get_db)
 ):
     """
@@ -154,6 +155,37 @@ async def wechat_miniapp_login(
         device_type=device_type
     )
     
+    # 设置 HttpOnly Cookie
+    is_production = not settings.DEBUG
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_production,  # 生产环境使用 HTTPS
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=is_production,
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+    )
+    
+    # 设置 CSRF Token Cookie（非 HttpOnly，前端需要读取）
+    # 安全说明：攻击者读不到 cookie 主要靠同源策略，SameSite 影响的是"跨站请求是否带 cookie"
+    csrf_token = generate_csrf_token()
+    response.set_cookie(
+        key="csrf_token",
+        value=csrf_token,
+        httponly=False,  # 非 HttpOnly，前端需要读取
+        secure=is_production,
+        samesite="lax",  # 与 access_token 保持一致
+        max_age=settings.CSRF_TOKEN_EXPIRE_SECONDS,  # 使用配置的过期时间（默认1天）
+    )
+    
     return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -175,6 +207,7 @@ async def wechat_miniapp_login(
 async def gmail_login(
     request: GmailLoginRequest,
     req: Request,
+    response: Response,
     db: Session = Depends(get_db)
 ):
     """
@@ -314,6 +347,37 @@ async def gmail_login(
         user_id=user_dict["id"],
         device_id=device_id,
         device_type=device_type
+    )
+    
+    # 设置 HttpOnly Cookie
+    is_production = not settings.DEBUG
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=is_production,  # 生产环境使用 HTTPS
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=is_production,
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
+    )
+    
+    # 设置 CSRF Token Cookie（非 HttpOnly，前端需要读取）
+    # 安全说明：攻击者读不到 cookie 主要靠同源策略，SameSite 影响的是"跨站请求是否带 cookie"
+    csrf_token = generate_csrf_token()
+    response.set_cookie(
+        key="csrf_token",
+        value=csrf_token,
+        httponly=False,  # 非 HttpOnly，前端需要读取
+        secure=is_production,
+        samesite="lax",  # 与 access_token 保持一致
+        max_age=settings.CSRF_TOKEN_EXPIRE_SECONDS,  # 使用配置的过期时间（默认1天）
     )
     
     return LoginResponse(

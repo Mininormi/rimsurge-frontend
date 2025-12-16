@@ -15,6 +15,17 @@ const nextConfig = {
       },
     ],
   },
+  // Docker 环境下的文件监听配置
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // 启用轮询模式以支持 Docker 卷挂载的文件变化检测
+      config.watchOptions = {
+        poll: 1000, // 每秒轮询一次
+        aggregateTimeout: 300, // 延迟 300ms 后重新构建
+      }
+    }
+    return config
+  },
 }
 
 export default nextConfig
