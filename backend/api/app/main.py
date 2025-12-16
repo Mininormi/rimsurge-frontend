@@ -4,7 +4,7 @@ FastAPI 应用入口
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.api.v1 import auth, oauth
+from app.api.v1 import auth
 from app.core.redis_client import redis_client
 
 # 创建 FastAPI 应用
@@ -26,7 +26,6 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
-app.include_router(oauth.router, prefix="/api/v1/oauth", tags=["OAuth"])
 
 
 @app.get("/", summary="根路径")

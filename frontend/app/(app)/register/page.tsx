@@ -2,8 +2,11 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { register, sendVerificationCode } from '@/lib/api/auth'
+import { useAuth } from '@/lib/auth/context'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -12,12 +15,53 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    verificationCode: '',
   })
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isSendingCode, setIsSendingCode] = useState(false)
+  const [countdown, setCountdown] = useState(0)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const router = useRouter()
+  const authContext = useAuth()
+  const setAuthUser = authContext.login
+
+  // 倒计时效果
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
+
+  /**
+   * 发送验证码
+   */
+  const handleSendCode = async () => {
+    if (!formData.email.trim()) {
+      setErrors({ ...errors, email: '请先输入邮箱地址' })
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setErrors({ ...errors, email: '请输入有效的邮箱地址' })
+      return
+    }
+
+    setIsSendingCode(true)
+    setErrors({ ...errors, email: '', verificationCode: '' })
+
+    try {
+      await sendVerificationCode(formData.email.trim())
+      setCountdown(120) // 120秒倒计时
+    } catch (err: any) {
+      setErrors({ ...errors, verificationCode: err.detail || '发送验证码失败' })
+    } finally {
+      setIsSendingCode(false)
+    }
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -36,10 +80,16 @@ export default function RegisterPage() {
       newErrors.email = 'Please enter a valid email address'
     }
 
+    if (!formData.verificationCode.trim()) {
+      newErrors.verificationCode = 'Verification code is required'
+    } else if (!/^\d{6}$/.test(formData.verificationCode.trim())) {
+      newErrors.verificationCode = 'Verification code must be 6 digits'
+    }
+
     if (!formData.password) {
       newErrors.password = 'Password is required'
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters'
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters'
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -62,11 +112,25 @@ export default function RegisterPage() {
     }
 
     setIsLoading(true)
-    // 这里添加注册逻辑
-    setTimeout(() => {
+    setErrors({})
+
+    try {
+      const registerData = {
+        email: formData.email.trim(),
+        password: formData.password,
+        nickname: `${formData.firstName.trim()} ${formData.lastName.trim()}`.trim(),
+        verification_code: formData.verificationCode.trim(),
+      }
+      const response = await register(registerData)
+      // 注册成功，自动登录
+      setAuthUser(response.user)
+      // 跳转到首页
+      router.push('/')
+    } catch (err: any) {
+      setErrors({ ...errors, submit: err.detail || '注册失败，请稍后再试' })
+    } finally {
       setIsLoading(false)
-      // 注册成功后可以重定向到登录页面或首页
-    }, 1000)
+    }
   }
 
   const handleChange = (field: string, value: string) => {
@@ -93,6 +157,12 @@ export default function RegisterPage() {
         {/* 注册表单卡片 */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* 提交错误提示 */}
+            {errors.submit && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                {errors.submit}
+              </div>
+            )}
             {/* 姓名 */}
             <div className="grid gap-4 md:grid-cols-2">
               <div>
@@ -156,6 +226,45 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* 验证码输入 */}
+            <div>
+              <label htmlFor="verificationCode" className="mb-1.5 block text-sm font-semibold text-slate-900">
+                Verification Code *
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="verificationCode"
+                  type="text"
+                  value={formData.verificationCode}
+                  onChange={(e) => handleChange('verificationCode', e.target.value)}
+                  required
+                  maxLength={6}
+                  className={`flex-1 rounded-lg border ${
+                    errors.verificationCode ? 'border-red-300' : 'border-slate-300'
+                  } bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-colors focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20`}
+                  placeholder="6位验证码"
+                />
+                <button
+                  type="button"
+                  onClick={handleSendCode}
+                  disabled={isSendingCode || countdown > 0}
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isSendingCode
+                    ? '发送中...'
+                    : countdown > 0
+                    ? `${countdown}秒`
+                    : '发送验证码'}
+                </button>
+              </div>
+              {errors.verificationCode && (
+                <p className="mt-1 text-xs text-red-600">{errors.verificationCode}</p>
+              )}
+              <p className="mt-1 text-xs text-slate-500">
+                验证码将发送到您的邮箱，有效期为 5 分钟
+              </p>
+            </div>
+
             {/* Password 输入 */}
             <div>
               <label htmlFor="password" className="mb-1.5 block text-sm font-semibold text-slate-900">
@@ -210,7 +319,7 @@ export default function RegisterPage() {
                 <p className="mt-1 text-xs text-red-600">{errors.password}</p>
               )}
               <p className="mt-1 text-xs text-slate-500">
-                Must be at least 8 characters long
+                Must be at least 6 characters long
               </p>
             </div>
 

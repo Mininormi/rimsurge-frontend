@@ -51,7 +51,6 @@ async def wechat_miniapp_login(
     unionid = wechat_data.get("unionid")
     
     users_table = get_table("fa_user")
-    devices_table = get_table("fa_user_devices")
     
     # 查找用户（优先通过 openid，其次通过 unionid）
     user_row = None
@@ -155,25 +154,6 @@ async def wechat_miniapp_login(
         device_type=device_type
     )
     
-    # 保存到数据库
-    expire_time = int((datetime.utcnow().timestamp() + 
-                      settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600))
-    
-    db.execute(
-        devices_table.insert().values(
-            user_id=user_dict["id"],
-            device_id=device_id,
-            device_type=device_type,
-            refresh_token=refresh_token,
-            last_login_ip=req.client.host if req.client else None,
-            last_login_time=int(datetime.utcnow().timestamp()),
-            expire_time=expire_time,
-            createtime=int(datetime.utcnow().timestamp()),
-            updatetime=int(datetime.utcnow().timestamp()),
-        )
-    )
-    db.commit()
-    
     return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -227,7 +207,6 @@ async def gmail_login(
         )
     
     users_table = get_table("fa_user")
-    devices_table = get_table("fa_user_devices")
     
     # 查找用户（优先通过 google_id，其次通过邮箱）
     user_row = None
@@ -336,25 +315,6 @@ async def gmail_login(
         device_id=device_id,
         device_type=device_type
     )
-    
-    # 保存到数据库
-    expire_time = int((datetime.utcnow().timestamp() + 
-                      settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600))
-    
-    db.execute(
-        devices_table.insert().values(
-            user_id=user_dict["id"],
-            device_id=device_id,
-            device_type=device_type,
-            refresh_token=refresh_token,
-            last_login_ip=req.client.host if req.client else None,
-            last_login_time=int(datetime.utcnow().timestamp()),
-            expire_time=expire_time,
-            createtime=int(datetime.utcnow().timestamp()),
-            updatetime=int(datetime.utcnow().timestamp()),
-        )
-    )
-    db.commit()
     
     return LoginResponse(
         access_token=access_token,

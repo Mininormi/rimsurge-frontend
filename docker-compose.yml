@@ -68,7 +68,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - /app/.next
+      # 移除 /app/.next 匿名卷，让 Next.js 可以正常构建和热重载
     working_dir: /app
     environment:
       - NODE_ENV=development

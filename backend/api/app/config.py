@@ -60,6 +60,26 @@ class Settings(BaseSettings):
         "http://localhost:8001",
     ]
     
+    # CSRF 防护配置（独立于 CORS）
+    CSRF_TRUSTED_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:8080",
+        "http://localhost:8001",
+    ]
+    CSRF_TOKEN_EXPIRE_SECONDS: int = 86400  # CSRF Token 过期时间（1天）
+    
+    # SMTP 邮件配置
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: Optional[str] = None
+    SMTP_FROM_NAME: str = "RimSurge"
+    
+    # 验证码配置
+    VERIFICATION_CODE_EXPIRE_SECONDS: int = 300  # 验证码过期时间（5分钟）
+    VERIFICATION_CODE_RATE_LIMIT_SECONDS: int = 120  # 发送频率限制（120秒）
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

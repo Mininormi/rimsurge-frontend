@@ -60,3 +60,45 @@ class LoginResponse(BaseModel):
     expires_in: int
     user: UserInfo
 
+
+class SendVerificationCodeRequest(BaseModel):
+    """发送验证码请求"""
+    email: EmailStr = Field(..., description="邮箱地址")
+
+
+class SendVerificationCodeResponse(BaseModel):
+    """发送验证码响应"""
+    message: str = Field(default="验证码已发送", description="提示信息")
+    rate_limit_seconds: Optional[int] = Field(None, description="剩余等待时间（秒）")
+
+
+class VerifyCodeRequest(BaseModel):
+    """验证验证码请求"""
+    email: EmailStr = Field(..., description="邮箱地址")
+    code: str = Field(..., min_length=6, max_length=6, description="6位验证码")
+
+
+class VerifyCodeResponse(BaseModel):
+    """验证验证码响应"""
+    valid: bool = Field(..., description="是否有效")
+    message: str = Field(..., description="提示信息")
+
+
+class RegisterRequest(BaseModel):
+    """注册请求"""
+    email: EmailStr = Field(..., description="邮箱地址")
+    username: Optional[str] = Field(None, description="用户名（可选，默认使用邮箱前缀）")
+    password: str = Field(..., min_length=6, description="密码")
+    nickname: Optional[str] = Field(None, description="昵称")
+    verification_code: str = Field(..., min_length=6, max_length=6, description="邮箱验证码")
+
+
+class RegisterResponse(BaseModel):
+    """注册响应"""
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    user: UserInfo
+    message: str = Field(default="注册成功", description="提示信息")
+

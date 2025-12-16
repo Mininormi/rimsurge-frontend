@@ -1,8 +1,9 @@
 """
-安全相关功能：密码加密、JWT Token
+安全相关功能：密码加密、JWT Token、CSRF Token
 """
 import hashlib
 import jwt
+import secrets
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from app.config import settings
@@ -99,4 +100,14 @@ def verify_access_token(token: str) -> Optional[Dict[str, Any]]:
         return None
     except jwt.InvalidTokenError:
         return None
+
+
+def generate_csrf_token() -> str:
+    """
+    生成 CSRF Token（32 字节随机字符串）
+    
+    Returns:
+        CSRF Token 字符串
+    """
+    return secrets.token_urlsafe(32)
 

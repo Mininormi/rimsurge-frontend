@@ -3,21 +3,44 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { login } from '@/lib/api/auth'
+import { useAuth } from '@/lib/auth/context'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [account, setAccount] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string>('')
+  const router = useRouter()
+  
+  const authContext = useAuth()
+  const setAuthUser = authContext.login
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!account.trim() || !password) {
+      setError('请填写账号和密码')
+      return
+    }
+    
+    setError('')
     setIsLoading(true)
-    // 这里添加登录逻辑
-    setTimeout(() => {
+
+    try {
+      const response = await login(account.trim(), password)
+      // 登录成功，更新认证状态
+      setAuthUser(response.user)
+      // 跳转到首页或原页面
+      router.push('/')
+    } catch (err: any) {
+      setError(err.detail || '登录失败，请检查账号和密码')
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -36,19 +59,26 @@ export default function LoginPage() {
         {/* 登录表单卡片 */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email 输入 */}
+            {/* 错误提示 */}
+            {error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
+            {/* 账号输入（支持邮箱或用户名） */}
             <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-slate-900">
-                Email Address
+              <label htmlFor="account" className="mb-1.5 block text-sm font-semibold text-slate-900">
+                Email or Username
               </label>
               <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="account"
+                type="text"
+                value={account}
+                onChange={(e) => setAccount(e.target.value)}
                 required
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-colors focus:border-slate-900 focus:ring-2 focus:ring-slate-900/20"
-                placeholder="your.email@example.com"
+                placeholder="your.email@example.com or username"
               />
             </div>
 
