@@ -24,8 +24,12 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_PASSWORD: Optional[str] = "a123123"
-    REDIS_DB: int = 0  # Token 专用数据库
+    REDIS_DB: int = 0  # Token 专用数据库（DB=0）
     REDIS_DECODE_RESPONSES: bool = True
+    
+    # Redis 用户缓存配置（DB=3：地址、订单、物流等用户访问缓存）
+    REDIS_USERCACHE_DB: int = 3
+    REDIS_USERCACHE_TTL: int = 1800  # 用户缓存默认TTL（30分钟）
     
     # 数据库配置（与 PHP FastAdmin 共享）
     DATABASE_HOST: str = "mysql"

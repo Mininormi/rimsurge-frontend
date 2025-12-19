@@ -121,11 +121,16 @@ async def root():
 @app.get("/health", summary="健康检查")
 async def health():
     """健康检查端点"""
-    # 检查 Redis 连接
+    # 检查 Redis 连接（认证用）
     redis_ok = redis_client.ping()
+    
+    # 检查用户缓存 Redis 连接
+    from app.core.usercache_client import usercache_client
+    usercache_ok = usercache_client.ping()
     
     return {
         "status": "ok",
         "redis": "connected" if redis_ok else "disconnected",
+        "redis_usercache": "connected" if usercache_ok else "disconnected",
     }
 

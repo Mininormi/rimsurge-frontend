@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Optional
 from app.database import get_db, get_table
 from app.api.deps import get_current_user, verify_csrf_token
+from app.core.address_cache import AddressCache
 from app.schemas.address import (
     AddressCreate,
     AddressUpdate,
@@ -154,13 +155,25 @@ async def get_addresses(
     db: Session = Depends(get_db),
 ):
     """
-    获取当前用户的地址列表
+    获取当前用户的地址列表（带缓存）
     
     - 只返回未删除的地址（deleted_at IS NULL）
     - 默认地址优先排序
     - 可选的 address_type 过滤（shipping/billing）
+    - Cache-Aside 模式：先查缓存，miss 则查DB并回填
     """
     user_id = current_user["id"]
+    
+    # 1. 先尝试从缓存获取
+    cached_list = AddressCache.get_address_list(user_id, address_type)
+    if cached_list is not None:
+        # 缓存命中，直接返回
+        return AddressListResponse(
+            addresses=[AddressResponse(**addr) for addr in cached_list],
+            total=len(cached_list)
+        )
+    
+    # 2. 缓存未命中，查询数据库
     addresses_table = get_table("mini_user_address")
     
     # 构建查询条件
@@ -187,9 +200,14 @@ async def get_addresses(
     
     # 转换为响应格式
     address_list = []
+    address_dict_list = []
     for addr in addresses:
         addr_dict = dict(addr._mapping)
         address_list.append(AddressResponse(**addr_dict))
+        address_dict_list.append(addr_dict)
+    
+    # 3. 回填缓存
+    AddressCache.set_address_list(user_id, address_dict_list, address_type)
     
     return AddressListResponse(
         addresses=address_list,
@@ -204,11 +222,20 @@ async def get_address(
     db: Session = Depends(get_db),
 ):
     """
-    获取单个地址详情
+    获取单个地址详情（带缓存）
     
     - 权限校验：只能查看自己的地址
+    - Cache-Aside 模式：先查缓存，miss 则查DB并回填
     """
     user_id = current_user["id"]
+    
+    # 1. 先尝试从缓存获取
+    cached_address = AddressCache.get_address_detail(user_id, address_id)
+    if cached_address is not None:
+        # 缓存命中，直接返回
+        return AddressResponse(**cached_address)
+    
+    # 2. 缓存未命中，查询数据库
     addresses_table = get_table("mini_user_address")
     
     result = db.execute(
@@ -229,7 +256,12 @@ async def get_address(
             detail="地址不存在或已被删除"
         )
     
-    return AddressResponse(**dict(address._mapping))
+    address_dict = dict(address._mapping)
+    
+    # 3. 回填缓存
+    AddressCache.set_address_detail(user_id, address_id, address_dict)
+    
+    return AddressResponse(**address_dict)
 
 
 @router.post("", response_model=AddressResponse, status_code=status.HTTP_201_CREATED, summary="创建地址")
@@ -333,7 +365,12 @@ async def create_address(
         )
         new_address = result.fetchone()
     
-    return AddressResponse(**dict(new_address._mapping))
+    address_dict = dict(new_address._mapping)
+    
+    # 失效相关缓存（创建地址后）
+    AddressCache.invalidate_user_addresses(user_id)
+    
+    return AddressResponse(**address_dict)
 
 
 @router.patch("/{address_id}", response_model=AddressResponse, summary="更新地址")
@@ -447,8 +484,12 @@ async def update_address(
         .where(addresses_table.c.id == address_id)
     )
     updated_address = result.fetchone()
+    address_dict = dict(updated_address._mapping)
     
-    return AddressResponse(**dict(updated_address._mapping))
+    # 失效相关缓存（更新地址后）
+    AddressCache.invalidate_user_addresses(user_id)
+    
+    return AddressResponse(**address_dict)
 
 
 @router.post("/{address_id}/set-default", response_model=AddressResponse, summary="设置默认地址")
@@ -500,8 +541,12 @@ async def set_default(
         .where(addresses_table.c.id == address_id)
     )
     updated_address = result.fetchone()
+    address_dict = dict(updated_address._mapping)
     
-    return AddressResponse(**dict(updated_address._mapping))
+    # 失效相关缓存（设置默认地址后）
+    AddressCache.invalidate_user_addresses(user_id)
+    
+    return AddressResponse(**address_dict)
 
 
 @router.delete("/{address_id}", status_code=status.HTTP_204_NO_CONTENT, summary="删除地址（软删除）")
@@ -560,5 +605,8 @@ async def delete_address(
         ensure_default_address_exists(db, user_id, address_type, exclude_address_id=address_id)
     
     db.commit()
+    
+    # 失效相关缓存（删除地址后）
+    AddressCache.invalidate_user_addresses(user_id)
     
     return None
