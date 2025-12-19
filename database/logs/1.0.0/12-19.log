@@ -1,0 +1,119 @@
+
+================================================================================
+执行时间: 2025-12-19 21:48:16
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 2 个需要执行的 SQL 语句:
+
+SQL #1:
+CREATE TABLE IF NOT EXISTS `mini_user_address` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `user_id` int NOT NULL COMMENT '用户ID（鉴权用户）',
+  `address_type` enum('shipping','billing') NOT NULL DEFAULT 'shipping' COMMENT '地址类型',
+  `is_default` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否默认地址（同用户同类型仅允许1个默认，事务保证）',
+  `first_name` varchar(50) DEFAULT NULL COMMENT '名',
+  `last_name` varchar(50) DEFAULT NULL COMMENT '姓',
+  `company` varchar(100) DEFAULT NULL COMMENT '公司（可选）',
+  `phone_country_code` varchar(5) DEFAULT NULL COMMENT '电话国家码，如+1/+86',
+  `phone_number` varchar(32) DEFAULT NULL COMMENT '电话号码（不含国家码）',
+  `country_code` char(2) NOT NULL COMMENT '国家代码（ISO 2位，如CA/US）',
+  `province` varchar(100) DEFAULT NULL COMMENT '省/州（自由文本）',
+  `province_code` varchar(20) DEFAULT NULL COMMENT '省/州代码（预留Shopify，如ON/CA）',
+  `city` varchar(100) DEFAULT NULL COMMENT '城市（自由文本）',
+  `district` varchar(100) DEFAULT NULL COMMENT '区/县（自由文本，可选）',
+  `address_line1` varchar(255) NOT NULL COMMENT '地址行1（必填）',
+  `address_line2` varchar(255) DEFAULT NULL COMMENT '地址行2（公寓/门牌等，可选）',
+  `postal_code` varchar(20) DEFAULT NULL COMMENT '邮编',
+  `tax_region` varchar(50) DEFAULT NULL COMMENT '税区标识（预留）',
+  `shipping_zone` varchar(50) DEFAULT NULL COMMENT '运费/配送区标识（预留）',
+  `is_shippable` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否可配送（预留边界）',
+  `deleted_at` int DEFAULT NULL COMMENT '软删除时间戳（NULL=未删除）',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `idx_user_active` (`user_id`, `deleted_at`),
+  KEY `idx_user_type_active` (`user_id`, `address_type`, `deleted_at`),
+  KEY `idx_user_type_default` (`user_id`, `address_type`, `is_default`, `deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户地址簿（软删+默认地址事务保证）';
+
+SQL #2:
+CREATE TABLE IF NOT EXISTS `mini_order_address_snapshot` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `order_id` int NOT NULL COMMENT '订单ID（mini_order.id）',
+  `user_id` int NOT NULL COMMENT '用户ID（下单用户）',
+  `user_address_id` int DEFAULT NULL COMMENT '来源地址簿ID（mini_user_address.id，可空）',
+  `address_type` enum('shipping','billing') NOT NULL DEFAULT 'shipping' COMMENT '快照类型',
+  `first_name` varchar(50) DEFAULT NULL COMMENT '名',
+  `last_name` varchar(50) DEFAULT NULL COMMENT '姓',
+  `company` varchar(100) DEFAULT NULL COMMENT '公司（可选）',
+  `phone_country_code` varchar(5) DEFAULT NULL COMMENT '电话国家码',
+  `phone_number` varchar(32) DEFAULT NULL COMMENT '电话号码',
+  `country_code` char(2) NOT NULL COMMENT '国家代码（ISO 2位）',
+  `province` varchar(100) DEFAULT NULL COMMENT '省/州（自由文本）',
+  `province_code` varchar(20) DEFAULT NULL COMMENT '省/州代码（预留）',
+  `city` varchar(100) DEFAULT NULL COMMENT '城市（自由文本）',
+  `district` varchar(100) DEFAULT NULL COMMENT '区/县（可选）',
+  `address_line1` varchar(255) NOT NULL COMMENT '地址行1',
+  `address_line2` varchar(255) DEFAULT NULL COMMENT '地址行2（可选）',
+  `postal_code` varchar(20) DEFAULT NULL COMMENT '邮编',
+  `tax_region` varchar(50) DEFAULT NULL COMMENT '税区标识（预留）',
+  `shipping_zone` varchar(50) DEFAULT NULL COMMENT '运费/配送区标识（预留）',
+  `is_shippable` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否可配送（快照）',
+  `createtime` int DEFAULT NULL COMMENT '创建时间（快照生成时间）',
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  KEY `user_id` (`user_id`),
+  KEY `user_address_id` (`user_address_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单地址快照（下单时固化，便于追溯）';
+
+========================================
+[预览模式] 以上 SQL 未实际执行
+========================================
+
+
+================================================================================
+执行时间: 2025-12-19 21:49:44
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 2 个需要执行的 SQL 语句:
+
+执行 SQL #1...
+  ✓ 成功
+
+执行 SQL #2...
+  ✓ 成功
+
+========================================
+同步完成！
+成功: 2 个
+失败: 0 个
+========================================
+
+
+================================================================================
+执行时间: 2025-12-19 21:50:37
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+✓ 数据库结构已是最新版本，无需更新
+

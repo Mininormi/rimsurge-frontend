@@ -1445,6 +1445,291 @@
             "engine": "InnoDB",
             "charset": "utf8mb4",
             "comment": "车辆型号表"
+        },
+        "mini_user_address": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "user_id": {
+                    "type": "int",
+                    "null": false,
+                    "comment": "用户ID（鉴权用户）"
+                },
+                "address_type": {
+                    "type": "enum('shipping','billing')",
+                    "null": false,
+                    "default": "shipping",
+                    "comment": "地址类型"
+                },
+                "is_default": {
+                    "type": "tinyint(1)",
+                    "null": false,
+                    "default": "0",
+                    "comment": "是否默认地址（同用户同类型仅允许1个默认，事务保证）"
+                },
+                "first_name": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "名"
+                },
+                "last_name": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "姓"
+                },
+                "company": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "公司（可选）"
+                },
+                "phone_country_code": {
+                    "type": "varchar(5)",
+                    "null": true,
+                    "comment": "电话国家码，如+1/+86"
+                },
+                "phone_number": {
+                    "type": "varchar(32)",
+                    "null": true,
+                    "comment": "电话号码（不含国家码）"
+                },
+                "country_code": {
+                    "type": "char(2)",
+                    "null": false,
+                    "comment": "国家代码（ISO 2位，如CA/US）"
+                },
+                "province": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "省/州（自由文本）"
+                },
+                "province_code": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "省/州代码（预留Shopify，如ON/CA）"
+                },
+                "city": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "城市（自由文本）"
+                },
+                "district": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "区/县（自由文本，可选）"
+                },
+                "address_line1": {
+                    "type": "varchar(255)",
+                    "null": false,
+                    "comment": "地址行1（必填）"
+                },
+                "address_line2": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "地址行2（公寓/门牌等，可选）"
+                },
+                "postal_code": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "邮编"
+                },
+                "tax_region": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "税区标识（预留）"
+                },
+                "shipping_zone": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "运费/配送区标识（预留）"
+                },
+                "is_shippable": {
+                    "type": "tinyint(1)",
+                    "null": false,
+                    "default": "1",
+                    "comment": "是否可配送（预留边界）"
+                },
+                "deleted_at": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "软删除时间戳（NULL=未删除）"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间"
+                },
+                "updatetime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "更新时间"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "user_id": [
+                    "user_id"
+                ],
+                "idx_user_active": [
+                    "user_id",
+                    "deleted_at"
+                ],
+                "idx_user_type_active": [
+                    "user_id",
+                    "address_type",
+                    "deleted_at"
+                ],
+                "idx_user_type_default": [
+                    "user_id",
+                    "address_type",
+                    "is_default",
+                    "deleted_at"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "用户地址簿（软删+默认地址事务保证）"
+        },
+        "mini_order_address_snapshot": {
+            "columns": {
+                "id": {
+                    "type": "int",
+                    "null": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": "ID"
+                },
+                "order_id": {
+                    "type": "int",
+                    "null": false,
+                    "comment": "订单ID（mini_order.id）"
+                },
+                "user_id": {
+                    "type": "int",
+                    "null": false,
+                    "comment": "用户ID（下单用户）"
+                },
+                "user_address_id": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "来源地址簿ID（mini_user_address.id，可空）"
+                },
+                "address_type": {
+                    "type": "enum('shipping','billing')",
+                    "null": false,
+                    "default": "shipping",
+                    "comment": "快照类型"
+                },
+                "first_name": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "名"
+                },
+                "last_name": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "姓"
+                },
+                "company": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "公司（可选）"
+                },
+                "phone_country_code": {
+                    "type": "varchar(5)",
+                    "null": true,
+                    "comment": "电话国家码"
+                },
+                "phone_number": {
+                    "type": "varchar(32)",
+                    "null": true,
+                    "comment": "电话号码"
+                },
+                "country_code": {
+                    "type": "char(2)",
+                    "null": false,
+                    "comment": "国家代码（ISO 2位）"
+                },
+                "province": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "省/州（自由文本）"
+                },
+                "province_code": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "省/州代码（预留）"
+                },
+                "city": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "城市（自由文本）"
+                },
+                "district": {
+                    "type": "varchar(100)",
+                    "null": true,
+                    "comment": "区/县（可选）"
+                },
+                "address_line1": {
+                    "type": "varchar(255)",
+                    "null": false,
+                    "comment": "地址行1"
+                },
+                "address_line2": {
+                    "type": "varchar(255)",
+                    "null": true,
+                    "comment": "地址行2（可选）"
+                },
+                "postal_code": {
+                    "type": "varchar(20)",
+                    "null": true,
+                    "comment": "邮编"
+                },
+                "tax_region": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "税区标识（预留）"
+                },
+                "shipping_zone": {
+                    "type": "varchar(50)",
+                    "null": true,
+                    "comment": "运费/配送区标识（预留）"
+                },
+                "is_shippable": {
+                    "type": "tinyint(1)",
+                    "null": false,
+                    "default": "1",
+                    "comment": "是否可配送（快照）"
+                },
+                "createtime": {
+                    "type": "int",
+                    "null": true,
+                    "comment": "创建时间（快照生成时间）"
+                }
+            },
+            "primary_key": [
+                "id"
+            ],
+            "indexes": {
+                "order_id": [
+                    "order_id"
+                ],
+                "user_id": [
+                    "user_id"
+                ],
+                "user_address_id": [
+                    "user_address_id"
+                ]
+            },
+            "engine": "InnoDB",
+            "charset": "utf8mb4",
+            "comment": "订单地址快照（下单时固化，便于追溯）"
         }
     }
 }

@@ -78,7 +78,18 @@ class ApiClient {
         throw error
       }
 
-      // 处理空响应
+      // #region agent log
+      if (response.status === 204) {
+        fetch('http://127.0.0.1:7242/ingest/e2a94ee8-06b0-4b36-a7b4-a3820ae00c2c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.ts:83',message:'204 No Content response handled',data:{status:204,url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      }
+      // #endregion
+
+      // 处理 204 No Content（成功但无响应体）
+      if (response.status === 204) {
+        return undefined as T
+      }
+
+      // 处理空响应体
       const contentType = response.headers.get('content-type')
       if (!contentType || !contentType.includes('application/json')) {
         return {} as T
@@ -124,6 +135,17 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
+  /**
+   * PATCH 请求
+   */
+  async patch<T>(endpoint: string, data?: unknown, options?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
     })
   }

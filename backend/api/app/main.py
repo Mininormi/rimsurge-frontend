@@ -103,6 +103,10 @@ async def general_exception_handler(request: Request, exc: Exception):
 # 注册路由
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
 
+# 地址簿路由（Web 端：Cookie 认证 + CSRF）
+from app.api.v1 import addresses
+app.include_router(addresses.router, prefix="/api/v1/addresses", tags=["地址簿"])
+
 
 @app.get("/", summary="根路径")
 async def root():

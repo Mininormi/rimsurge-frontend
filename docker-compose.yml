@@ -20,6 +20,15 @@ services:
     environment:
       - PHP_INI_SCAN_DIR=/usr/local/etc/php/conf.d:/usr/local/etc/php/conf.d/custom
     restart: unless-stopped
+    # 启动 PHP-FPM 和数据库同步工具服务器
+    command: >
+      sh -c "
+        php-fpm &
+        sleep 2 &&
+        cd /var/www/database &&
+        php -S 0.0.0.0:8082 -t /var/www/database sync-ui.php > /tmp/php-server.log 2>&1 &
+        wait
+      "
 
   nginx:
     image: nginx:alpine
