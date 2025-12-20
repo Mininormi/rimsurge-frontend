@@ -118,3 +118,4 @@ export async function setDefaultAddress(addressId: number): Promise<Address> {
 export async function deleteAddress(addressId: number): Promise<void> {
   return apiClient.delete(`/addresses/${addressId}`)
 }
+

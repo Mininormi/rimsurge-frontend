@@ -1,0 +1,391 @@
+
+================================================================================
+执行时间: 2025-12-20 08:51:58
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+待删除字段（需要手动处理）:
+  ⚠ 表: mini_vehicle_make, 字段: name (varchar(50))
+  ⚠ 表: mini_vehicle_make, 字段: slug (varchar(50))
+  ⚠ 表: mini_vehicle_make, 字段: logo (varchar(255))
+  ⚠ 表: mini_vehicle_make, 字段: status (enum('normal','hidden'))
+  ⚠ 表: mini_vehicle_make, 字段: weigh (int)
+  ⚠ 表: mini_vehicle_model, 字段: name (varchar(100))
+  ⚠ 表: mini_vehicle_model, 字段: slug (varchar(100))
+  ⚠ 表: mini_vehicle_model, 字段: status (enum('normal','hidden'))
+  ⚠ 表: mini_vehicle_model, 字段: weigh (int)
+待删除表（需要手动处理）:
+  ⚠ 表: mini_vehicle_engine
+  ⚠ 表: mini_vehicle_generation
+  ⚠ 表: mini_vehicle_wheel_profile
+  提示: 请在 Adminer 或命令行中手动删除，然后点击 Web UI 中的"已处理"按钮
+
+发现 4 个需要执行的 SQL 语句:
+
+SQL #1:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_year` (
+  `id` int NOT NULL COMMENT 'ID（保留源库 years.id）',
+  `year` int NOT NULL COMMENT '年份',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `year` (`year`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆年份表（原样保留源库 ID）';
+
+SQL #2:
+ALTER TABLE `mini_vehicle_make`
+  MODIFY COLUMN `id` int NOT NULL COMMENT 'ID（保留源库 makes.id，取消 auto_increment）',
+  ADD COLUMN `make_name` varchar(100) NOT NULL COMMENT '品牌名称（保持源字段命名）' AFTER `id`,
+  DROP INDEX `slug`,
+  DROP INDEX `status`,
+  ADD KEY `make_name` (`make_name`);
+
+SQL #3:
+ALTER TABLE `mini_vehicle_model`
+  MODIFY COLUMN `id` int NOT NULL COMMENT 'ID（保留源库 models.id，取消 auto_increment）',
+  ADD COLUMN `model_name` varchar(150) NOT NULL COMMENT '型号名称（保持源字段命名）' AFTER `make_id`,
+  DROP INDEX `slug`,
+  DROP INDEX `status`,
+  ADD KEY `idx_model_make` (`make_id`, `model_name`);
+
+SQL #4:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_detail` (
+  `vehicle_id` varchar(100) NOT NULL COMMENT '车辆ID（源库 vehicle_details.vehicle_id，主键）',
+  `year_id` int NOT NULL COMMENT '年份ID（FK 到 mini_vehicle_year.id）',
+  `make_id` int NOT NULL COMMENT '品牌ID（FK 到 mini_vehicle_make.id）',
+  `model_id` int NOT NULL COMMENT '型号ID（FK 到 mini_vehicle_model.id）',
+  `vehicle_name` text DEFAULT NULL COMMENT '车辆名称',
+  `bolt_pattern_front` varchar(50) DEFAULT NULL COMMENT '前轮螺栓孔距',
+  `bolt_pattern_rear` varchar(50) DEFAULT NULL COMMENT '后轮螺栓孔距',
+  `hub_bore_front` varchar(50) DEFAULT NULL COMMENT '前轮中心孔',
+  `hub_bore_rear` varchar(50) DEFAULT NULL COMMENT '后轮中心孔',
+  `min_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮最小偏距',
+  `min_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮最小偏距',
+  `max_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮最大偏距',
+  `max_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮最大偏距',
+  `oem_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮OEM偏距',
+  `oem_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮OEM偏距',
+  `rim_diameter_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂直径',
+  `rim_diameter_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂直径',
+  `rim_width_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂宽度',
+  `rim_width_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂宽度',
+  `wheel_size_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂尺寸',
+  `wheel_size_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂尺寸',
+  `tire_size_front` varchar(50) DEFAULT NULL COMMENT '前轮轮胎尺寸',
+  `tire_size_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮胎尺寸',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`vehicle_id`),
+  KEY `idx_detail_lookup` (`year_id`, `make_id`, `model_id`),
+  KEY `idx_detail_make` (`year_id`, `make_id`),
+  KEY `idx_detail_model` (`year_id`, `make_id`, `model_id`),
+  KEY `year_id` (`year_id`),
+  KEY `make_id` (`make_id`),
+  KEY `model_id` (`model_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆详情表（原样保留源库 vehicle_id，不去重，159112 行）';
+
+========================================
+[预览模式] 以上 SQL 未实际执行
+========================================
+
+
+================================================================================
+执行时间: 2025-12-20 08:53:23
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 4 个需要执行的 SQL 语句:
+
+SQL #1:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_year` (
+  `id` int NOT NULL COMMENT 'ID（保留源库 years.id）',
+  `year` int NOT NULL COMMENT '年份',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `year` (`year`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆年份表（原样保留源库 ID）';
+
+SQL #2:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_make` (
+  `id` int NOT NULL COMMENT 'ID（保留源库 makes.id，取消 auto_increment）',
+  `make_name` varchar(100) NOT NULL COMMENT '品牌名称（保持源字段命名）',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `make_name` (`make_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆品牌表（原样保留源库 ID）';
+
+SQL #3:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_model` (
+  `id` int NOT NULL COMMENT 'ID（保留源库 models.id，取消 auto_increment）',
+  `make_id` int NOT NULL COMMENT '品牌ID（FK 到 mini_vehicle_make.id）',
+  `model_name` varchar(150) NOT NULL COMMENT '型号名称（保持源字段命名）',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `make_id` (`make_id`),
+  KEY `idx_model_make` (`make_id`, `model_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆型号表（原样保留源库 ID）';
+
+SQL #4:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_detail` (
+  `vehicle_id` varchar(100) NOT NULL COMMENT '车辆ID（源库 vehicle_details.vehicle_id，主键）',
+  `year_id` int NOT NULL COMMENT '年份ID（FK 到 mini_vehicle_year.id）',
+  `make_id` int NOT NULL COMMENT '品牌ID（FK 到 mini_vehicle_make.id）',
+  `model_id` int NOT NULL COMMENT '型号ID（FK 到 mini_vehicle_model.id）',
+  `vehicle_name` text DEFAULT NULL COMMENT '车辆名称',
+  `bolt_pattern_front` varchar(50) DEFAULT NULL COMMENT '前轮螺栓孔距',
+  `bolt_pattern_rear` varchar(50) DEFAULT NULL COMMENT '后轮螺栓孔距',
+  `hub_bore_front` varchar(50) DEFAULT NULL COMMENT '前轮中心孔',
+  `hub_bore_rear` varchar(50) DEFAULT NULL COMMENT '后轮中心孔',
+  `min_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮最小偏距',
+  `min_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮最小偏距',
+  `max_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮最大偏距',
+  `max_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮最大偏距',
+  `oem_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮OEM偏距',
+  `oem_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮OEM偏距',
+  `rim_diameter_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂直径',
+  `rim_diameter_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂直径',
+  `rim_width_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂宽度',
+  `rim_width_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂宽度',
+  `wheel_size_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂尺寸',
+  `wheel_size_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂尺寸',
+  `tire_size_front` varchar(50) DEFAULT NULL COMMENT '前轮轮胎尺寸',
+  `tire_size_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮胎尺寸',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`vehicle_id`),
+  KEY `idx_detail_lookup` (`year_id`, `make_id`, `model_id`),
+  KEY `idx_detail_make` (`year_id`, `make_id`),
+  KEY `idx_detail_model` (`year_id`, `make_id`, `model_id`),
+  KEY `year_id` (`year_id`),
+  KEY `make_id` (`make_id`),
+  KEY `model_id` (`model_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆详情表（原样保留源库 vehicle_id，不去重，159112 行）';
+
+========================================
+[预览模式] 以上 SQL 未实际执行
+========================================
+
+
+================================================================================
+执行时间: 2025-12-20 08:53:36
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 4 个需要执行的 SQL 语句:
+
+执行 SQL #1...
+  ✓ 成功
+
+执行 SQL #2...
+  ✓ 成功
+
+执行 SQL #3...
+  ✓ 成功
+
+执行 SQL #4...
+  ✓ 成功
+
+========================================
+同步完成！
+成功: 4 个
+失败: 0 个
+========================================
+
+
+================================================================================
+执行时间: 2025-12-20 09:34:42
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 5 个需要执行的 SQL 语句:
+
+SQL #1:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_year` (
+  `id` int NOT NULL COMMENT 'ID（保留源库 years.id）',
+  `year` int NOT NULL COMMENT '年份',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `year` (`year`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆年份表（原样保留源库 ID）';
+
+SQL #2:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_fitment` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `product_spec_id` int NOT NULL COMMENT '产品规格ID',
+  `vehicle_make_id` int DEFAULT NULL COMMENT '车辆品牌ID',
+  `vehicle_model_id` int DEFAULT NULL COMMENT '车辆型号ID',
+  `vehicle_generation_id` int DEFAULT NULL COMMENT '车辆代际ID',
+  `vehicle_engine_id` int DEFAULT NULL COMMENT '发动机ID',
+  `fitment_note` text DEFAULT NULL COMMENT '适配说明',
+  `is_verified` tinyint(1) DEFAULT '0' COMMENT '是否已验证',
+  `status` enum('normal','hidden') DEFAULT 'normal' COMMENT '状态',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `product_spec_id` (`product_spec_id`),
+  KEY `vehicle_make_id` (`vehicle_make_id`),
+  KEY `vehicle_model_id` (`vehicle_model_id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆适配关系表';
+
+SQL #3:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_make` (
+  `year_id` int NOT NULL COMMENT '年份ID（源库 makes.year_id，关联 mini_vehicle_year.id）',
+  `make_id` int NOT NULL COMMENT '品牌ID（源库 makes.make_id，同一年下唯一）',
+  `make_name` varchar(100) NOT NULL COMMENT '品牌名称（保持源字段命名）',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`year_id`, `make_id`),
+  KEY `year_id` (`year_id`),
+  KEY `make_id` (`make_id`),
+  KEY `make_name` (`make_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆品牌表（与源库 makes 保持一致：按 year_id 分组）';
+
+SQL #4:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_model` (
+  `year_id` int NOT NULL COMMENT '年份ID（源库 models.year_id）',
+  `make_id` int NOT NULL COMMENT '品牌ID（源库 models.make_id）',
+  `model_id` int NOT NULL COMMENT '型号ID（源库 models.model_id，同一年同品牌下唯一）',
+  `model_name` varchar(200) NOT NULL COMMENT '型号名称（保持源字段命名）',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`year_id`, `make_id`, `model_id`),
+  KEY `year_id` (`year_id`),
+  KEY `make_id` (`make_id`),
+  KEY `model_id` (`model_id`),
+  KEY `idx_model_lookup` (`year_id`, `make_id`),
+  KEY `idx_model_name` (`make_id`, `model_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆型号表（与源库 models 保持一致：按 year_id+make_id 分组）';
+
+SQL #5:
+CREATE TABLE IF NOT EXISTS `mini_vehicle_detail` (
+  `vehicle_id` varchar(100) NOT NULL COMMENT '车辆ID（源库 vehicle_details.vehicle_id，主键）',
+  `year_id` int NOT NULL COMMENT '年份ID（FK 到 mini_vehicle_year.id）',
+  `make_id` int NOT NULL COMMENT '品牌ID（与 year_id 一起构成对 mini_vehicle_make(year_id, make_id) 的引用）',
+  `model_id` int NOT NULL COMMENT '型号ID（与 year_id, make_id 一起构成对 mini_vehicle_model(year_id, make_id, model_id) 的引用）',
+  `vehicle_name` text DEFAULT NULL COMMENT '车辆名称',
+  `bolt_pattern_front` varchar(50) DEFAULT NULL COMMENT '前轮螺栓孔距',
+  `bolt_pattern_rear` varchar(50) DEFAULT NULL COMMENT '后轮螺栓孔距',
+  `hub_bore_front` varchar(50) DEFAULT NULL COMMENT '前轮中心孔',
+  `hub_bore_rear` varchar(50) DEFAULT NULL COMMENT '后轮中心孔',
+  `min_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮最小偏距',
+  `min_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮最小偏距',
+  `max_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮最大偏距',
+  `max_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮最大偏距',
+  `oem_offset_front` varchar(50) DEFAULT NULL COMMENT '前轮OEM偏距',
+  `oem_offset_rear` varchar(50) DEFAULT NULL COMMENT '后轮OEM偏距',
+  `rim_diameter_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂直径',
+  `rim_diameter_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂直径',
+  `rim_width_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂宽度',
+  `rim_width_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂宽度',
+  `wheel_size_front` varchar(50) DEFAULT NULL COMMENT '前轮轮毂尺寸',
+  `wheel_size_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮毂尺寸',
+  `tire_size_front` varchar(50) DEFAULT NULL COMMENT '前轮轮胎尺寸',
+  `tire_size_rear` varchar(50) DEFAULT NULL COMMENT '后轮轮胎尺寸',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`vehicle_id`),
+  KEY `idx_detail_lookup` (`year_id`, `make_id`, `model_id`),
+  KEY `idx_detail_make` (`year_id`, `make_id`),
+  KEY `idx_detail_model` (`year_id`, `make_id`, `model_id`),
+  KEY `year_id` (`year_id`),
+  KEY `make_id` (`make_id`),
+  KEY `model_id` (`model_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='车辆详情表（原样保留源库 vehicle_id，不去重，159112 行）';
+
+========================================
+[预览模式] 以上 SQL 未实际执行
+========================================
+
+
+================================================================================
+执行时间: 2025-12-20 09:35:20
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 5 个需要执行的 SQL 语句:
+
+执行 SQL #1...
+  ✓ 成功
+
+执行 SQL #2...
+  ✓ 成功
+
+执行 SQL #3...
+  ✓ 成功
+
+执行 SQL #4...
+  ✓ 成功
+
+执行 SQL #5...
+  ✓ 成功
+
+========================================
+同步完成！
+成功: 5 个
+失败: 0 个
+========================================
+
+
+================================================================================
+执行时间: 2025-12-20 10:11:18
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+待删除表（需要手动处理）:
+  ⚠ 表: mini_vehicle_fitment
+  提示: 请在 Adminer 或命令行中手动删除，然后点击 Web UI 中的"已处理"按钮
+
+✓ 数据库结构已是最新版本，无需更新
+
+
+================================================================================
+执行时间: 2025-12-20 10:12:33
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+✓ 数据库结构已是最新版本，无需更新
+

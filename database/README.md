@@ -231,3 +231,4 @@ cat database/logs/1.0.2/12-13.log
 4. 使用预览模式先查看 SQL，确认无误后再执行
 5. 查看日志文件：`database/logs/{version}/MM-DD.log`
 6. 参考相关文档获取详细帮助
+

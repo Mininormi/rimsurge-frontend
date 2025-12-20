@@ -105,3 +105,4 @@ docker compose exec php tail -f /var/log/php-server.log
 2. 检查防火墙设置
 3. 尝试使用 127.0.0.1 而不是 localhost
 
+

@@ -140,3 +140,4 @@ if usercache_client.ping():
 ### 缓存数据不一致
 - 如果发现缓存数据不一致，可以手动删除用户的缓存版本号
 - 或者调用 `AddressCache.invalidate_user_addresses(user_id)` 强制失效
+

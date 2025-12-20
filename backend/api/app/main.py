@@ -13,6 +13,16 @@ from app.config import settings
 print(f"[STARTUP DEBUG] VERIFICATION_CODE_RATE_LIMIT_ENABLED: {settings.VERIFICATION_CODE_RATE_LIMIT_ENABLED}")
 print(f"[STARTUP DEBUG] Type: {type(settings.VERIFICATION_CODE_RATE_LIMIT_ENABLED)}")
 # #endregion
+
+# #region agent log
+import json
+import os
+log_path = r"c:\Users\mininormi\Desktop\rimsurge\rimsurge-pj\.cursor\debug.log"
+try:
+    with open(log_path, 'a', encoding='utf-8') as f:
+        f.write(json.dumps({"location":"main.py:16","message":"Importing vehicles and shop routers","data":{"vehicles_exists":True,"shop_exists":True},"timestamp":int(__import__('time').time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}) + "\n")
+except: pass
+# #endregion
 from app.api.v1 import auth
 from app.core.redis_client import redis_client
 
@@ -106,6 +116,27 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
 # 地址簿路由（Web 端：Cookie 认证 + CSRF）
 from app.api.v1 import addresses
 app.include_router(addresses.router, prefix="/api/v1/addresses", tags=["地址簿"])
+
+# 车辆数据路由（游客可访问，无需鉴权）
+from app.api.v1 import vehicles
+app.include_router(vehicles.router, prefix="/api/v1/vehicles", tags=["车辆数据"])
+
+# 商品路由（游客可访问，无需鉴权）
+from app.api.v1 import shop
+app.include_router(shop.router, prefix="/api/v1/shop", tags=["商品"])
+
+# #region agent log
+try:
+    import json
+    import time
+    log_path = r"c:\Users\mininormi\Desktop\rimsurge\rimsurge-pj\.cursor\debug.log"
+    registered_routes = [route.path for route in app.routes if hasattr(route, 'path')]
+    vehicles_routes = [r for r in registered_routes if '/vehicles' in r]
+    shop_routes = [r for r in registered_routes if '/shop' in r]
+    with open(log_path, 'a', encoding='utf-8') as f:
+        f.write(json.dumps({"location":"main.py:112","message":"Routes registered successfully","data":{"vehicles_routes":vehicles_routes,"shop_routes":shop_routes,"total_routes":len(registered_routes)},"timestamp":int(time.time()*1000),"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}) + "\n")
+except: pass
+# #endregion
 
 
 @app.get("/", summary="根路径")

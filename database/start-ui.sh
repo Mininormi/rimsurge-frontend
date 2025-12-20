@@ -7,3 +7,4 @@ echo "启动数据库同步工具..."
 echo "访问地址: http://localhost:8082/sync-ui.php"
 php -S 0.0.0.0:8082
 
+

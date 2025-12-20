@@ -223,3 +223,4 @@ if (!$serverRunning) {
 }
 
 echo "诊断完成！\n";
+

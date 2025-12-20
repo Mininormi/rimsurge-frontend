@@ -8,3 +8,4 @@ nohup php -S 0.0.0.0:8082 > /var/log/php-server.log 2>&1 &
 # 保持容器运行
 exec "$@"
 
+

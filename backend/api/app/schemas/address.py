@@ -113,3 +113,4 @@ class AddressListResponse(BaseModel):
 class SetDefaultRequest(BaseModel):
     """设置默认地址请求（可选，因为路径参数已包含地址ID）"""
     pass
+

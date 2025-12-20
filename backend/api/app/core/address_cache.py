@@ -276,3 +276,4 @@ class AddressCache:
             AddressCache._get_default_key(user_id, "billing", version),
         ]
         usercache_client.delete(*keys)
+

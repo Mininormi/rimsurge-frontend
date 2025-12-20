@@ -262,3 +262,4 @@ php database/sync.php --schema
 - `database/DatabaseInspector.php` - 数据库结构提取器
 - `database/DiffGenerator.php` - 差异检测和 SQL 生成器
 
+
