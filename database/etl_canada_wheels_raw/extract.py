@@ -4,25 +4,27 @@
 只提取 years/makes/models/vehicle_details 四张表
 """
 import sqlite3
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 
 class CanadaWheelsRawExtractor:
     """从 canada_wheels.db 原样提取数据（不去重）"""
     
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, filter_years: Optional[List[int]] = None):
         """
         初始化提取器
         
         Args:
             db_path: canada_wheels.db 文件路径
+            filter_years: 可选，年份列表（如 [2025, 2026]），只提取这些年份的数据
         """
         self.db_path = Path(db_path)
         if not self.db_path.exists():
             raise FileNotFoundError(f"数据库文件不存在: {db_path}")
         self.conn = sqlite3.connect(str(self.db_path))
         self.conn.row_factory = sqlite3.Row  # 返回字典格式
+        self.filter_years = filter_years  # 年份过滤列表
     
     def close(self):
         """关闭数据库连接"""
@@ -30,56 +32,158 @@ class CanadaWheelsRawExtractor:
             self.conn.close()
     
     def extract_years(self) -> List[Dict[str, Any]]:
-        """提取年份数据（原样，不去重）"""
+        """
+        提取年份数据（原样，不去重）
+        
+        如果指定了 filter_years，只提取这些年份
+        """
         cursor = self.conn.cursor()
-        cursor.execute("SELECT id, year FROM years ORDER BY id")
+        if self.filter_years:
+            placeholders = ','.join(['?' for _ in self.filter_years])
+            cursor.execute(
+                f"SELECT id, year FROM years WHERE year IN ({placeholders}) ORDER BY id",
+                self.filter_years
+            )
+        else:
+            cursor.execute("SELECT id, year FROM years ORDER BY id")
         return [dict(row) for row in cursor.fetchall()]
     
     def extract_makes(self) -> List[Dict[str, Any]]:
-        """提取品牌数据（原样，不去重）"""
+        """
+        提取品牌数据（原样，不去重）
+        
+        如果指定了 filter_years，只提取这些年份对应的品牌
+        """
         cursor = self.conn.cursor()
-        cursor.execute("SELECT year_id, make_id, make_name FROM makes ORDER BY year_id, make_id")
+        if self.filter_years:
+            # 先找到这些年份对应的 year_id
+            placeholders = ','.join(['?' for _ in self.filter_years])
+            cursor.execute(
+                f"SELECT id FROM years WHERE year IN ({placeholders})",
+                self.filter_years
+            )
+            year_ids = [row[0] for row in cursor.fetchall()]
+            if not year_ids:
+                return []
+            
+            # 根据 year_id 提取 makes
+            placeholders = ','.join(['?' for _ in year_ids])
+            cursor.execute(
+                f"SELECT year_id, make_id, make_name FROM makes WHERE year_id IN ({placeholders}) ORDER BY year_id, make_id",
+                year_ids
+            )
+        else:
+            cursor.execute("SELECT year_id, make_id, make_name FROM makes ORDER BY year_id, make_id")
         return [dict(row) for row in cursor.fetchall()]
     
     def extract_models(self) -> List[Dict[str, Any]]:
-        """提取型号数据（原样，不去重）"""
+        """
+        提取型号数据（原样，不去重）
+        
+        如果指定了 filter_years，只提取这些年份对应的型号
+        """
         cursor = self.conn.cursor()
-        cursor.execute(
-            "SELECT year_id, make_id, model_id, model_name FROM models ORDER BY year_id, make_id, model_id"
-        )
+        if self.filter_years:
+            # 先找到这些年份对应的 year_id
+            placeholders = ','.join(['?' for _ in self.filter_years])
+            cursor.execute(
+                f"SELECT id FROM years WHERE year IN ({placeholders})",
+                self.filter_years
+            )
+            year_ids = [row[0] for row in cursor.fetchall()]
+            if not year_ids:
+                return []
+            
+            # 根据 year_id 提取 models
+            placeholders = ','.join(['?' for _ in year_ids])
+            cursor.execute(
+                f"SELECT year_id, make_id, model_id, model_name FROM models WHERE year_id IN ({placeholders}) ORDER BY year_id, make_id, model_id",
+                year_ids
+            )
+        else:
+            cursor.execute(
+                "SELECT year_id, make_id, model_id, model_name FROM models ORDER BY year_id, make_id, model_id"
+            )
         return [dict(row) for row in cursor.fetchall()]
     
     def extract_vehicle_details(self) -> List[Dict[str, Any]]:
-        """提取车辆详情数据（原样，不去重，159112 行）"""
+        """
+        提取车辆详情数据（原样，不去重）
+        
+        如果指定了 filter_years，只提取这些年份对应的车辆详情
+        """
         cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT 
-                vehicle_id,
-                year_id,
-                make_id,
-                model_id,
-                vehicle_name,
-                bolt_pattern_front,
-                bolt_pattern_rear,
-                hub_bore_front,
-                hub_bore_rear,
-                min_offset_front,
-                min_offset_rear,
-                max_offset_front,
-                max_offset_rear,
-                oem_offset_front,
-                oem_offset_rear,
-                rim_diameter_front,
-                rim_diameter_rear,
-                rim_width_front,
-                rim_width_rear,
-                wheel_size_front,
-                wheel_size_rear,
-                tire_size_front,
-                tire_size_rear
-            FROM vehicle_details
-            ORDER BY vehicle_id
-        """)
+        if self.filter_years:
+            # 先找到这些年份对应的 year_id
+            placeholders = ','.join(['?' for _ in self.filter_years])
+            cursor.execute(
+                f"SELECT id FROM years WHERE year IN ({placeholders})",
+                self.filter_years
+            )
+            year_ids = [row[0] for row in cursor.fetchall()]
+            if not year_ids:
+                return []
+            
+            # 根据 year_id 提取 vehicle_details
+            placeholders = ','.join(['?' for _ in year_ids])
+            cursor.execute(f"""
+                SELECT 
+                    vehicle_id,
+                    year_id,
+                    make_id,
+                    model_id,
+                    vehicle_name,
+                    bolt_pattern_front,
+                    bolt_pattern_rear,
+                    hub_bore_front,
+                    hub_bore_rear,
+                    min_offset_front,
+                    min_offset_rear,
+                    max_offset_front,
+                    max_offset_rear,
+                    oem_offset_front,
+                    oem_offset_rear,
+                    rim_diameter_front,
+                    rim_diameter_rear,
+                    rim_width_front,
+                    rim_width_rear,
+                    wheel_size_front,
+                    wheel_size_rear,
+                    tire_size_front,
+                    tire_size_rear
+                FROM vehicle_details
+                WHERE year_id IN ({placeholders})
+                ORDER BY vehicle_id
+            """, year_ids)
+        else:
+            cursor.execute("""
+                SELECT 
+                    vehicle_id,
+                    year_id,
+                    make_id,
+                    model_id,
+                    vehicle_name,
+                    bolt_pattern_front,
+                    bolt_pattern_rear,
+                    hub_bore_front,
+                    hub_bore_rear,
+                    min_offset_front,
+                    min_offset_rear,
+                    max_offset_front,
+                    max_offset_rear,
+                    oem_offset_front,
+                    oem_offset_rear,
+                    rim_diameter_front,
+                    rim_diameter_rear,
+                    rim_width_front,
+                    rim_width_rear,
+                    wheel_size_front,
+                    wheel_size_rear,
+                    tire_size_front,
+                    tire_size_rear
+                FROM vehicle_details
+                ORDER BY vehicle_id
+            """)
         return [dict(row) for row in cursor.fetchall()]
     
     def get_statistics(self) -> Dict[str, int]:

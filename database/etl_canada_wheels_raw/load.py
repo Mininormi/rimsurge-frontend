@@ -59,15 +59,77 @@ class MySQLRawLoader:
             self.conn.rollback()
             raise
     
+    def delete_years(self, year_ids: List[int]):
+        """
+        删除指定年份的数据（按依赖顺序，先删依赖者）
+        
+        Args:
+            year_ids: 要删除的年份ID列表（mini_vehicle_year.id）
+        """
+        if not self.conn:
+            self.connect()
+        
+        if not year_ids:
+            return
+        
+        cursor = self.conn.cursor()
+        placeholders = ','.join(['%s' for _ in year_ids])
+        
+        try:
+            # 按依赖顺序删除：detail -> model -> make -> year
+            print(f"\n删除年份数据 (year_ids: {year_ids})...")
+            
+            # 1. 删除 vehicle_details
+            cursor.execute(
+                f"DELETE FROM mini_vehicle_detail WHERE year_id IN ({placeholders})",
+                year_ids
+            )
+            detail_count = cursor.rowcount
+            print(f"  [OK] 删除 mini_vehicle_detail: {detail_count} 条")
+            
+            # 2. 删除 models
+            cursor.execute(
+                f"DELETE FROM mini_vehicle_model WHERE year_id IN ({placeholders})",
+                year_ids
+            )
+            model_count = cursor.rowcount
+            print(f"  [OK] 删除 mini_vehicle_model: {model_count} 条")
+            
+            # 3. 删除 makes
+            cursor.execute(
+                f"DELETE FROM mini_vehicle_make WHERE year_id IN ({placeholders})",
+                year_ids
+            )
+            make_count = cursor.rowcount
+            print(f"  [OK] 删除 mini_vehicle_make: {make_count} 条")
+            
+            # 4. 删除 years
+            cursor.execute(
+                f"DELETE FROM mini_vehicle_year WHERE id IN ({placeholders})",
+                year_ids
+            )
+            year_count = cursor.rowcount
+            print(f"  [OK] 删除 mini_vehicle_year: {year_count} 条")
+            
+            self.conn.commit()
+            print(f"[OK] 年份数据删除完成")
+            
+        except Exception as e:
+            print(f"[ERROR] 删除年份数据失败: {e}")
+            self.conn.rollback()
+            raise
+    
     def load_years(self, years_data: List[Dict[str, Any]]) -> int:
         """
         加载年份数据（原样，保留源库 ID）
+        
+        使用 INSERT ... ON DUPLICATE KEY UPDATE 避免重复插入
         
         Args:
             years_data: 年份数据列表
         
         Returns:
-            int: 插入的行数
+            int: 插入/更新的行数
         """
         if not self.conn:
             self.connect()
@@ -75,10 +137,13 @@ class MySQLRawLoader:
         cursor = self.conn.cursor()
         now = int(datetime.now().timestamp())
         
-        # 批量插入
+        # 使用 ON DUPLICATE KEY UPDATE 避免重复
         sql = """
             INSERT INTO mini_vehicle_year (id, year, createtime, updatetime)
             VALUES (%s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                year = VALUES(year),
+                updatetime = VALUES(updatetime)
         """
         
         values = [
@@ -97,11 +162,13 @@ class MySQLRawLoader:
         """
         加载品牌数据（原样，保留源库 ID）
         
+        使用 INSERT ... ON DUPLICATE KEY UPDATE 避免重复插入
+        
         Args:
             makes_data: 品牌数据列表
         
         Returns:
-            int: 插入的行数
+            int: 插入/更新的行数
         """
         if not self.conn:
             self.connect()
@@ -109,10 +176,13 @@ class MySQLRawLoader:
         cursor = self.conn.cursor()
         now = int(datetime.now().timestamp())
         
-        # 批量插入
+        # 使用 ON DUPLICATE KEY UPDATE 避免重复（复合主键 year_id, make_id）
         sql = """
             INSERT INTO mini_vehicle_make (year_id, make_id, make_name, createtime, updatetime)
             VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                make_name = VALUES(make_name),
+                updatetime = VALUES(updatetime)
         """
         
         values = [
@@ -131,11 +201,13 @@ class MySQLRawLoader:
         """
         加载型号数据（原样，保留源库 ID）
         
+        使用 INSERT ... ON DUPLICATE KEY UPDATE 避免重复插入
+        
         Args:
             models_data: 型号数据列表
         
         Returns:
-            int: 插入的行数
+            int: 插入/更新的行数
         """
         if not self.conn:
             self.connect()
@@ -143,10 +215,13 @@ class MySQLRawLoader:
         cursor = self.conn.cursor()
         now = int(datetime.now().timestamp())
         
-        # 批量插入
+        # 使用 ON DUPLICATE KEY UPDATE 避免重复（复合主键 year_id, make_id, model_id）
         sql = """
             INSERT INTO mini_vehicle_model (year_id, make_id, model_id, model_name, createtime, updatetime)
             VALUES (%s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                model_name = VALUES(model_name),
+                updatetime = VALUES(updatetime)
         """
         
         values = [
@@ -163,14 +238,16 @@ class MySQLRawLoader:
     
     def load_vehicle_details(self, vehicle_details_data: List[Dict[str, Any]], batch_size: int = 5000) -> int:
         """
-        加载车辆详情数据（原样，不去重，159112 行）
+        加载车辆详情数据（原样，不去重）
+        
+        使用 INSERT ... ON DUPLICATE KEY UPDATE 避免重复插入
         
         Args:
             vehicle_details_data: 车辆详情数据列表
             batch_size: 批量插入大小
         
         Returns:
-            int: 插入的行数
+            int: 插入/更新的行数
         """
         if not self.conn:
             self.connect()
@@ -200,6 +277,30 @@ class MySQLRawLoader:
                 %s, %s, %s, %s,
                 %s, %s, %s, %s
             )
+            ON DUPLICATE KEY UPDATE
+                year_id = VALUES(year_id),
+                make_id = VALUES(make_id),
+                model_id = VALUES(model_id),
+                vehicle_name = VALUES(vehicle_name),
+                bolt_pattern_front = VALUES(bolt_pattern_front),
+                bolt_pattern_rear = VALUES(bolt_pattern_rear),
+                hub_bore_front = VALUES(hub_bore_front),
+                hub_bore_rear = VALUES(hub_bore_rear),
+                min_offset_front = VALUES(min_offset_front),
+                min_offset_rear = VALUES(min_offset_rear),
+                max_offset_front = VALUES(max_offset_front),
+                max_offset_rear = VALUES(max_offset_rear),
+                oem_offset_front = VALUES(oem_offset_front),
+                oem_offset_rear = VALUES(oem_offset_rear),
+                rim_diameter_front = VALUES(rim_diameter_front),
+                rim_diameter_rear = VALUES(rim_diameter_rear),
+                rim_width_front = VALUES(rim_width_front),
+                rim_width_rear = VALUES(rim_width_rear),
+                wheel_size_front = VALUES(wheel_size_front),
+                wheel_size_rear = VALUES(wheel_size_rear),
+                tire_size_front = VALUES(tire_size_front),
+                tire_size_rear = VALUES(tire_size_rear),
+                updatetime = VALUES(updatetime)
         """
         
         total_count = 0
