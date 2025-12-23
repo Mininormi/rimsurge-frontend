@@ -263,3 +263,4 @@ php database/sync.php --schema
 - `database/DiffGenerator.php` - 差异检测和 SQL 生成器
 
 
+

@@ -42,3 +42,4 @@ fi
 echo "查看服务器日志: docker compose exec php tail -f /tmp/php-server.log"
 echo "查看调试日志: docker compose exec php cat /tmp/debug-sync-ui.log"
 
+

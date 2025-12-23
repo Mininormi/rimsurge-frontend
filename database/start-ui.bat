@@ -7,3 +7,4 @@ echo 访问地址: http://localhost:8082/sync-ui.php
 docker compose exec -d php bash -c "cd /var/www/database && php -S 0.0.0.0:8082"
 
 
+

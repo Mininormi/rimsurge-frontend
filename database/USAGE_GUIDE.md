@@ -390,3 +390,4 @@ SHOW CREATE TABLE mini_product;
 5. **小步迭代**：一次修改一个表或少量字段，避免大规模变更
 
 
+

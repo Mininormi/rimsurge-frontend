@@ -232,3 +232,4 @@ cat database/logs/1.0.2/12-13.log
 5. 查看日志文件：`database/logs/{version}/MM-DD.log`
 6. 参考相关文档获取详细帮助
 
+

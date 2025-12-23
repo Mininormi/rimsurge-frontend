@@ -1,0 +1,428 @@
+
+================================================================================
+执行时间: 2025-12-21 07:37:15
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+待删除表（需要手动处理）:
+  ⚠ 表: mini_brand
+  ⚠ 表: mini_product
+  ⚠ 表: mini_product_finish
+  ⚠ 表: mini_product_spec
+  提示: 请在 Adminer 或命令行中手动删除，然后点击 Web UI 中的"已处理"按钮
+
+发现 3 个需要执行的 SQL 语句:
+
+SQL #1:
+CREATE TABLE IF NOT EXISTS `mini_wheel_brand` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `name` varchar(100) NOT NULL COMMENT '品牌名称',
+  `slug` varchar(100) DEFAULT NULL COMMENT 'URL别名',
+  `logo` varchar(255) DEFAULT NULL COMMENT '品牌Logo',
+  `description` text DEFAULT NULL COMMENT '品牌描述',
+  `status` enum('normal','hidden') DEFAULT 'normal' COMMENT '状态',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `slug` (`slug`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂品牌表';
+
+SQL #2:
+CREATE TABLE IF NOT EXISTS `mini_wheel_product` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `brand_id` int DEFAULT NULL COMMENT '品牌ID（关联 mini_wheel_brand.id）',
+  `name` varchar(200) NOT NULL COMMENT '产品名称',
+  `slug` varchar(200) DEFAULT NULL COMMENT 'URL别名',
+  `tagline` varchar(255) DEFAULT NULL COMMENT '产品标语',
+  `image` varchar(255) DEFAULT NULL COMMENT '主图',
+  `images` text DEFAULT NULL COMMENT '产品图集',
+  `content` text DEFAULT NULL COMMENT '产品详情',
+  `overview` text DEFAULT NULL COMMENT '产品概述',
+  `manufacturing_process` varchar(100) DEFAULT NULL COMMENT '制造工艺（如：Forged, Flow Formed, Cast）',
+  `finish_type` varchar(100) DEFAULT NULL COMMENT '涂层处理（如：Gloss Black, Matte Bronze）',
+  `color` varchar(50) DEFAULT NULL COMMENT '颜色（如：Black, Silver, Bronze）',
+  `center_cap_included` tinyint(1) DEFAULT '0' COMMENT '是否带中心盖',
+  `hub_ring_included` tinyint(1) DEFAULT '0' COMMENT '是否带中心环',
+  `design_style` varchar(100) DEFAULT NULL COMMENT '设计风格（SEO字段，如：Mesh, Spoke, Concave）',
+  `sale_price` decimal(10,2) DEFAULT '0.00' COMMENT '售价',
+  `original_price` decimal(10,2) DEFAULT '0.00' COMMENT '原价',
+  `price_per` varchar(50) DEFAULT 'Per set of 4 wheels' COMMENT '价格单位',
+  `stock` int DEFAULT '0' COMMENT '库存',
+  `status` enum('normal','hidden','soldout') DEFAULT 'normal' COMMENT '状态',
+  `is_featured` tinyint(1) DEFAULT '0' COMMENT '是否推荐',
+  `is_new` tinyint(1) DEFAULT '0' COMMENT '是否新品',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `brand_id` (`brand_id`),
+  KEY `slug` (`slug`),
+  KEY `status` (`status`),
+  KEY `is_featured` (`is_featured`),
+  KEY `is_new` (`is_new`),
+  KEY `design_style` (`design_style`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂产品表';
+
+SQL #3:
+CREATE TABLE IF NOT EXISTS `mini_wheel_product_spec` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `product_id` int NOT NULL COMMENT '产品ID（关联 mini_wheel_product.id）',
+  `size` varchar(50) NOT NULL COMMENT '尺寸(如: 18×8.5 +35)',
+  `diameter` int DEFAULT NULL COMMENT '直径（英寸，纯数字，如：18）',
+  `width` decimal(4,1) DEFAULT NULL COMMENT '宽度（英寸，保留一位小数，如：8.5）',
+  `pcd` varchar(50) DEFAULT NULL COMMENT 'PCD(如: 5×114.3)',
+  `offset` int DEFAULT NULL COMMENT 'Offset（毫米，允许负数，如：35 或 -10）',
+  `center_bore` decimal(6,1) DEFAULT NULL COMMENT '中心孔（毫米，保留一位小数，如：73.1）',
+  `seat_type` varchar(50) DEFAULT NULL COMMENT '螺丝/螺母底座类型（如：Cone, Ball, Flat）',
+  `bolt_hole_diameter` decimal(5,2) DEFAULT NULL COMMENT '螺栓/螺柱孔径（毫米，如：12.0）',
+  `weight_kg` decimal(6,2) DEFAULT NULL COMMENT '单只轮毂重量（公斤，如：9.5）',
+  `load_rating_kg` int DEFAULT NULL COMMENT '单只载重（公斤，如：690）',
+  `tpms_compatible` tinyint(1) DEFAULT '0' COMMENT '是否支持TPMS胎压传感器',
+  `construction` varchar(100) DEFAULT NULL COMMENT '结构(如: Forged, 1-piece)',
+  `origin` varchar(100) DEFAULT NULL COMMENT '产地',
+  `winter_use` varchar(255) DEFAULT NULL COMMENT '冬季使用说明',
+  `price` decimal(10,2) DEFAULT '0.00' COMMENT '此规格价格',
+  `stock` int DEFAULT '0' COMMENT '此规格库存',
+  `status` enum('normal','hidden','soldout') DEFAULT 'normal' COMMENT '状态',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  KEY `pcd` (`pcd`),
+  KEY `status` (`status`),
+  KEY `diameter` (`diameter`),
+  KEY `offset` (`offset`),
+  KEY `center_bore` (`center_bore`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂产品规格表';
+
+========================================
+[预览模式] 以上 SQL 未实际执行
+========================================
+
+
+================================================================================
+执行时间: 2025-12-21 07:37:25
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+待删除表（需要手动处理）:
+  ⚠ 表: mini_brand
+  ⚠ 表: mini_product
+  ⚠ 表: mini_product_finish
+  ⚠ 表: mini_product_spec
+  提示: 请在 Adminer 或命令行中手动删除，然后点击 Web UI 中的"已处理"按钮
+
+发现 3 个需要执行的 SQL 语句:
+
+SQL #1:
+CREATE TABLE IF NOT EXISTS `mini_wheel_brand` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `name` varchar(100) NOT NULL COMMENT '品牌名称',
+  `slug` varchar(100) DEFAULT NULL COMMENT 'URL别名',
+  `logo` varchar(255) DEFAULT NULL COMMENT '品牌Logo',
+  `description` text DEFAULT NULL COMMENT '品牌描述',
+  `status` enum('normal','hidden') DEFAULT 'normal' COMMENT '状态',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `slug` (`slug`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂品牌表';
+
+SQL #2:
+CREATE TABLE IF NOT EXISTS `mini_wheel_product` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `brand_id` int DEFAULT NULL COMMENT '品牌ID（关联 mini_wheel_brand.id）',
+  `name` varchar(200) NOT NULL COMMENT '产品名称',
+  `slug` varchar(200) DEFAULT NULL COMMENT 'URL别名',
+  `tagline` varchar(255) DEFAULT NULL COMMENT '产品标语',
+  `image` varchar(255) DEFAULT NULL COMMENT '主图',
+  `images` text DEFAULT NULL COMMENT '产品图集',
+  `content` text DEFAULT NULL COMMENT '产品详情',
+  `overview` text DEFAULT NULL COMMENT '产品概述',
+  `manufacturing_process` varchar(100) DEFAULT NULL COMMENT '制造工艺（如：Forged, Flow Formed, Cast）',
+  `finish_type` varchar(100) DEFAULT NULL COMMENT '涂层处理（如：Gloss Black, Matte Bronze）',
+  `color` varchar(50) DEFAULT NULL COMMENT '颜色（如：Black, Silver, Bronze）',
+  `center_cap_included` tinyint(1) DEFAULT '0' COMMENT '是否带中心盖',
+  `hub_ring_included` tinyint(1) DEFAULT '0' COMMENT '是否带中心环',
+  `design_style` varchar(100) DEFAULT NULL COMMENT '设计风格（SEO字段，如：Mesh, Spoke, Concave）',
+  `sale_price` decimal(10,2) DEFAULT '0.00' COMMENT '售价',
+  `original_price` decimal(10,2) DEFAULT '0.00' COMMENT '原价',
+  `price_per` varchar(50) DEFAULT 'Per set of 4 wheels' COMMENT '价格单位',
+  `stock` int DEFAULT '0' COMMENT '库存',
+  `status` enum('normal','hidden','soldout') DEFAULT 'normal' COMMENT '状态',
+  `is_featured` tinyint(1) DEFAULT '0' COMMENT '是否推荐',
+  `is_new` tinyint(1) DEFAULT '0' COMMENT '是否新品',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `brand_id` (`brand_id`),
+  KEY `slug` (`slug`),
+  KEY `status` (`status`),
+  KEY `is_featured` (`is_featured`),
+  KEY `is_new` (`is_new`),
+  KEY `design_style` (`design_style`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂产品表';
+
+SQL #3:
+CREATE TABLE IF NOT EXISTS `mini_wheel_product_spec` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `product_id` int NOT NULL COMMENT '产品ID（关联 mini_wheel_product.id）',
+  `size` varchar(50) NOT NULL COMMENT '尺寸(如: 18×8.5 +35)',
+  `diameter` int DEFAULT NULL COMMENT '直径（英寸，纯数字，如：18）',
+  `width` decimal(4,1) DEFAULT NULL COMMENT '宽度（英寸，保留一位小数，如：8.5）',
+  `pcd` varchar(50) DEFAULT NULL COMMENT 'PCD(如: 5×114.3)',
+  `offset` int DEFAULT NULL COMMENT 'Offset（毫米，允许负数，如：35 或 -10）',
+  `center_bore` decimal(6,1) DEFAULT NULL COMMENT '中心孔（毫米，保留一位小数，如：73.1）',
+  `seat_type` varchar(50) DEFAULT NULL COMMENT '螺丝/螺母底座类型（如：Cone, Ball, Flat）',
+  `bolt_hole_diameter` decimal(5,2) DEFAULT NULL COMMENT '螺栓/螺柱孔径（毫米，如：12.0）',
+  `weight_kg` decimal(6,2) DEFAULT NULL COMMENT '单只轮毂重量（公斤，如：9.5）',
+  `load_rating_kg` int DEFAULT NULL COMMENT '单只载重（公斤，如：690）',
+  `tpms_compatible` tinyint(1) DEFAULT '0' COMMENT '是否支持TPMS胎压传感器',
+  `construction` varchar(100) DEFAULT NULL COMMENT '结构(如: Forged, 1-piece)',
+  `origin` varchar(100) DEFAULT NULL COMMENT '产地',
+  `winter_use` varchar(255) DEFAULT NULL COMMENT '冬季使用说明',
+  `price` decimal(10,2) DEFAULT '0.00' COMMENT '此规格价格',
+  `stock` int DEFAULT '0' COMMENT '此规格库存',
+  `status` enum('normal','hidden','soldout') DEFAULT 'normal' COMMENT '状态',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  KEY `pcd` (`pcd`),
+  KEY `status` (`status`),
+  KEY `diameter` (`diameter`),
+  KEY `offset` (`offset`),
+  KEY `center_bore` (`center_bore`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂产品规格表';
+
+========================================
+[预览模式] 以上 SQL 未实际执行
+========================================
+
+
+================================================================================
+执行时间: 2025-12-21 07:38:19
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 3 个需要执行的 SQL 语句:
+
+执行 SQL #1...
+  ✓ 成功
+
+执行 SQL #2...
+  ✓ 成功
+
+执行 SQL #3...
+  ✓ 成功
+
+========================================
+同步完成！
+成功: 3 个
+失败: 0 个
+========================================
+
+
+================================================================================
+执行时间: 2025-12-21 09:20:48
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+警告信息:
+  ⚠ ⚠ 表 mini_wheel_product_spec 字段 seat_type: 字段类型从 varchar 变更为 enum，类型不兼容，可能导致数据丢失或错误
+
+待删除字段（需要手动处理）:
+  ⚠ 表: mini_wheel_product, 字段: finish_type (varchar(100))
+  ⚠ 表: mini_wheel_product, 字段: color (varchar(50))
+  ⚠ 表: mini_wheel_product, 字段: sale_price (decimal(10,2))
+  ⚠ 表: mini_wheel_product, 字段: original_price (decimal(10,2))
+  ⚠ 表: mini_wheel_product, 字段: price_per (varchar(50))
+  ⚠ 表: mini_wheel_product, 字段: stock (int)
+  ⚠ 表: mini_wheel_product_spec, 字段: bolt_hole_diameter (decimal(5,2))
+  ⚠ 表: mini_wheel_product_spec, 字段: construction (varchar(100))
+  ⚠ 表: mini_wheel_product_spec, 字段: origin (varchar(100))
+  ⚠ 表: mini_wheel_product_spec, 字段: winter_use (varchar(255))
+  ⚠ 表: mini_wheel_product_spec, 字段: price (decimal(10,2))
+  提示: 请在 Adminer 或命令行中手动删除，然后点击 Web UI 中的"已处理"按钮
+
+发现 2 个需要执行的 SQL 语句:
+
+SQL #1:
+ALTER TABLE `mini_wheel_product`
+  ADD COLUMN `finish_name` varchar(100) DEFAULT NULL COMMENT '涂层处理名称（如：Hyper silver）' AFTER `manufacturing_process`,
+  ADD COLUMN `winter_approved` tinyint(1) DEFAULT '0' COMMENT '是否冬季认证' AFTER `is_new`;
+
+SQL #2:
+ALTER TABLE `mini_wheel_product_spec`
+  ADD COLUMN `slug` varchar(200) DEFAULT NULL COMMENT 'URL别名' AFTER `product_id`,
+  ADD COLUMN `pcd_lugs` tinyint DEFAULT NULL COMMENT 'PCD螺栓数量（如：5）' AFTER `pcd`,
+  ADD COLUMN `pcd_mm` decimal(5,1) DEFAULT NULL COMMENT 'PCD直径（毫米，如：114.3）' AFTER `pcd_lugs`,
+  MODIFY COLUMN `seat_type` enum('cone','ball','flat') DEFAULT NULL COMMENT '螺丝/螺母底座类型',
+  ADD COLUMN `bolt_hole_diameter_mm` decimal(5,2) DEFAULT NULL COMMENT '螺栓/螺柱通孔孔径（mm，如 14.5）' AFTER `seat_type`,
+  ADD COLUMN `sale_price` decimal(10,2) DEFAULT '0.00' COMMENT '售价' AFTER `tpms_compatible`,
+  ADD COLUMN `original_price` decimal(10,2) DEFAULT '0.00' COMMENT '原价' AFTER `sale_price`,
+  ADD KEY `slug` (`slug`);
+
+========================================
+[预览模式] 以上 SQL 未实际执行
+========================================
+
+
+================================================================================
+执行时间: 2025-12-21 09:21:23
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+[预览模式 - 不会实际执行 SQL]
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 3 个需要执行的 SQL 语句:
+
+SQL #1:
+CREATE TABLE IF NOT EXISTS `mini_wheel_brand` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `name` varchar(100) NOT NULL COMMENT '品牌名称',
+  `slug` varchar(100) DEFAULT NULL COMMENT 'URL别名',
+  `logo` varchar(255) DEFAULT NULL COMMENT '品牌Logo',
+  `description` text DEFAULT NULL COMMENT '品牌描述',
+  `status` enum('normal','hidden') DEFAULT 'normal' COMMENT '状态',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `slug` (`slug`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂品牌表';
+
+SQL #2:
+CREATE TABLE IF NOT EXISTS `mini_wheel_product` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `brand_id` int DEFAULT NULL COMMENT '品牌ID（关联 mini_wheel_brand.id）',
+  `name` varchar(200) NOT NULL COMMENT '产品名称',
+  `slug` varchar(200) DEFAULT NULL COMMENT 'URL别名',
+  `tagline` varchar(255) DEFAULT NULL COMMENT '产品标语',
+  `image` varchar(255) DEFAULT NULL COMMENT '主图',
+  `images` text DEFAULT NULL COMMENT '产品图集',
+  `content` text DEFAULT NULL COMMENT '产品详情',
+  `overview` text DEFAULT NULL COMMENT '产品概述',
+  `manufacturing_process` varchar(100) DEFAULT NULL COMMENT '制造工艺（如：Forged, Flow Formed, Cast）',
+  `finish_name` varchar(100) DEFAULT NULL COMMENT '涂层处理名称（如：Hyper silver）',
+  `center_cap_included` tinyint(1) DEFAULT '0' COMMENT '是否带中心盖',
+  `hub_ring_included` tinyint(1) DEFAULT '0' COMMENT '是否带中心环',
+  `design_style` varchar(100) DEFAULT NULL COMMENT '设计风格（SEO字段，如：Mesh, Spoke, Concave）',
+  `status` enum('normal','hidden','soldout') DEFAULT 'normal' COMMENT '状态',
+  `is_featured` tinyint(1) DEFAULT '0' COMMENT '是否推荐',
+  `is_new` tinyint(1) DEFAULT '0' COMMENT '是否新品',
+  `winter_approved` tinyint(1) DEFAULT '0' COMMENT '是否冬季认证',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `brand_id` (`brand_id`),
+  KEY `slug` (`slug`),
+  KEY `status` (`status`),
+  KEY `is_featured` (`is_featured`),
+  KEY `is_new` (`is_new`),
+  KEY `design_style` (`design_style`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂产品表';
+
+SQL #3:
+CREATE TABLE IF NOT EXISTS `mini_wheel_product_spec` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `product_id` int NOT NULL COMMENT '产品ID（关联 mini_wheel_product.id）',
+  `slug` varchar(200) DEFAULT NULL COMMENT 'URL别名',
+  `size` varchar(50) NOT NULL COMMENT '尺寸(如: 18×8.5 +35)',
+  `diameter` int DEFAULT NULL COMMENT '直径（英寸，纯数字，如：18）',
+  `width` decimal(4,1) DEFAULT NULL COMMENT '宽度（英寸，保留一位小数，如：8.5）',
+  `pcd` varchar(50) DEFAULT NULL COMMENT 'PCD(如: 5×114.3)',
+  `pcd_lugs` tinyint DEFAULT NULL COMMENT 'PCD螺栓数量（如：5）',
+  `pcd_mm` decimal(5,1) DEFAULT NULL COMMENT 'PCD直径（毫米，如：114.3）',
+  `offset` int DEFAULT NULL COMMENT 'Offset（毫米，允许负数，如：35 或 -10）',
+  `center_bore` decimal(6,1) DEFAULT NULL COMMENT '中心孔（毫米，保留一位小数，如：73.1）',
+  `seat_type` enum('cone','ball','flat') DEFAULT NULL COMMENT '螺丝/螺母底座类型',
+  `bolt_hole_diameter_mm` decimal(5,2) DEFAULT NULL COMMENT '螺栓/螺柱通孔孔径（mm，如 14.5）',
+  `weight_kg` decimal(6,2) DEFAULT NULL COMMENT '单只轮毂重量（公斤，如：9.5）',
+  `load_rating_kg` int DEFAULT NULL COMMENT '单只载重（公斤，如：690）',
+  `tpms_compatible` tinyint(1) DEFAULT '0' COMMENT '是否支持TPMS胎压传感器',
+  `sale_price` decimal(10,2) DEFAULT '0.00' COMMENT '售价',
+  `original_price` decimal(10,2) DEFAULT '0.00' COMMENT '原价',
+  `stock` int DEFAULT '0' COMMENT '此规格库存',
+  `status` enum('normal','hidden','soldout') DEFAULT 'normal' COMMENT '状态',
+  `weigh` int DEFAULT '0' COMMENT '排序',
+  `createtime` int DEFAULT NULL COMMENT '创建时间',
+  `updatetime` int DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  KEY `pcd` (`pcd`),
+  KEY `slug` (`slug`),
+  KEY `status` (`status`),
+  KEY `diameter` (`diameter`),
+  KEY `offset` (`offset`),
+  KEY `center_bore` (`center_bore`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='轮毂产品规格表';
+
+========================================
+[预览模式] 以上 SQL 未实际执行
+========================================
+
+
+================================================================================
+执行时间: 2025-12-21 09:21:34
+================================================================================
+========================================
+数据库结构同步工具（Schema 热更新模式）
+========================================
+
+加载 Schema 文件: /var/www/database/schema.json
+Schema 版本: 1.0.0
+
+发现 3 个需要执行的 SQL 语句:
+
+执行 SQL #1...
+  ✓ 成功
+
+执行 SQL #2...
+  ✓ 成功
+
+执行 SQL #3...
+  ✓ 成功
+
+========================================
+同步完成！
+成功: 3 个
+失败: 0 个
+========================================
+

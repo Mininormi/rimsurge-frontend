@@ -332,3 +332,4 @@ cat database/logs/1.0.2/12-13.log
 1. 日志文件：`database/logs/{version}/MM-DD.log`
 2. 调试日志：`/var/www/.cursor/debug.log`（Docker）或 `../.cursor/debug.log`（本地）
 
+

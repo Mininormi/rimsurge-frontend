@@ -58,3 +58,4 @@ class FitmentResponse(BaseModel):
     available_sizes: List[dict] = Field(default_factory=list, description="可用尺寸列表：[{diameter: 17, label: '17\" (-3)'}, ...]")
 
 
+
